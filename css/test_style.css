@@ -1,0 +1,92 @@
+*{
+  margin:0; padding:0;
+  font-weight:300;
+  word-break: keep-all;
+}
+html{
+  -ms-overflow-style:none;
+  font-size:62.5%;
+  line-height:1.285;
+}
+body{
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+	background-size: 400% 400%;
+	animation: gradient 15s ease infinite;
+	height: 100vh;
+  color:#fff;
+}
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+
+h1{
+  font-size:2.4rem;
+}
+p{
+  font-size:1.4rem;
+}
+.stlye_btn{
+  width:100%;
+  max-width:420px;
+  padding-top:16px;
+  padding-bottom:16px;
+  border-width:1px;
+  border-style:solid;
+  border-color:rgba(0,0,0,0);
+  background-color:rgba(0,0,0,0.8);
+  font-size:1.4rem;
+  color:#fff;
+  border-radius: 10px;
+  margin-bottom:40px;
+}
+span{
+  font-size:1.1rem;
+}
+#main{
+  width:90%;
+  text-align: center;
+  background-color: rgba(red, green, blue, alpha 0.0);
+}
+
+.link_a{
+  width: 90%;
+  text-decoration: none;
+  color:#fff;
+  font-size:1.4rem;
+  background-color: rgba(0,0,0,0);
+}
+.link_span{
+  font-size:1.4rem;
+  display: block;
+}
+.link_ul{
+  width:100%;
+  text-align: center;
+}
+.link_li{
+  white-space: nowrap;
+  padding:8px 20px;
+  line-height: 32px;
+  margin: 10px 5px;
+  background-color: rgba(0,0,0,0);
+  display: inline-block;
+  border-radius: 40px;
+  border-width:1px;
+  border-style:solid;
+  border-color:rgba(255,255,255,1);
+}
+.link_li:hover{
+  background-color: rgba(0,0,0,1);
+  color:#fff;
+  cursor: pointer;
+  font-weight: 400;
+}

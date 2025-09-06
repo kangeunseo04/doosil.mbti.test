@@ -1,0 +1,20 @@
+#result{
+  width:90%;
+  text-align: center;
+}
+#shareresult{
+  width:90%;
+  text-align: center;
+}
+.resultname{
+  font-size:2.4rem;
+}
+.resultDesc{
+  font-size:2rem;
+}
+#result > h1{
+  display: none;
+}
+.resultname{
+  display: none;
+}
