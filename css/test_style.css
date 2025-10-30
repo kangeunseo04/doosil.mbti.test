@@ -126,23 +126,23 @@ img.img-fluid {
   width: min(420px, 90%);
   margin: 24px auto 0;
   padding: 14px 22px;
-  border: none; /* ✅ 테두리 제거 */
+  border: none; /* ✅ 테두리 없음 */
   border-radius: 9999px;
   background: #111; /* ✅ 기본 검정 배경 */
-  color: #fff; /* ✅ 흰 글씨 */
+  color: #fff; /* ✅ 기본 흰 글씨 */
   font-weight: 700;
   text-align: center;
   letter-spacing: -0.01em;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-  transition: background 0.18s ease, color 0.18s ease,
-              box-shadow 0.18s ease, transform 0.06s ease;
+  transition: background 0.25s ease, color 0.25s ease,
+              box-shadow 0.2s ease, transform 0.06s ease;
   cursor: pointer;
   user-select: none;
 }
 
 #result .btn-cta:hover {
-  background: #fff; /* ✅ 호버 시 흰색 배경 */
-  color: #111; /* ✅ 검정 글씨 */
+  background: #fff; /* ✅ 반전: 흰색 배경 */
+  color: #111; /* ✅ 반전: 검정 글씨 */
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
   transform: translateY(-1px);
 }
@@ -151,3 +151,4 @@ img.img-fluid {
   transform: translateY(0);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
 }
+
