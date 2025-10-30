@@ -112,3 +112,46 @@ span{
 img.img-fluid {
   pointer-events: none; /* 이미지 클릭이 버튼을 가리지 않도록 */
 }
+/* ===== 공유하기 CTA 버튼 스타일 ===== */
+:root{
+  --btn-bg: #111;          /* 기본 검정 */
+  --btn-fg: #fff;          /* 기본 흰 글씨 */
+  --btn-border: #111;      /* 테두리(기본 검정) */
+  --btn-bg-hover: #fff;    /* 호버 시 배경 흰색 */
+  --btn-fg-hover: #111;    /* 호버 시 글자 검정 */
+}
+
+#result .btn-cta{
+  display:block !important;
+  width: min(420px, 90%);
+  margin: 24px auto 0;
+  padding: 14px 22px;
+  border-radius: 9999px;
+  border: 2px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -0.01em;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  transition: background .18s ease, color .18s ease,
+              box-shadow .18s ease, transform .06s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+#result .btn-cta:hover{
+  background: var(--btn-bg-hover);
+  color: var(--btn-fg-hover);
+  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+  transform: translateY(-1px);
+}
+
+#result .btn-cta:active{
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0,0,0,.16);
+}
+
+/* 이미지가 클릭을 먹지 않도록 */
+img.img-fluid{ pointer-events:none; }
+
