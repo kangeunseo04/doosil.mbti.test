@@ -121,56 +121,33 @@ img.img-fluid {
   --btn-fg-hover: #111;    /* 호버 시 글자 검정 */
 }
 
-#result .btn-cta{
-  display:block !important;
+#result .btn-cta {
+  display: block !important;
   width: min(420px, 90%);
   margin: 24px auto 0;
   padding: 14px 22px;
+  border: none; /* ✅ 테두리 제거 */
   border-radius: 9999px;
-  border: 2px solid var(--btn-border);
-  background: var(--btn-bg);
-  color: var(--btn-fg);
+  background: #111; /* ✅ 기본 검정 배경 */
+  color: #fff; /* ✅ 흰 글씨 */
   font-weight: 700;
   text-align: center;
   letter-spacing: -0.01em;
-  box-shadow: 0 6px 16px rgba(0,0,0,.18);
-  transition: background .18s ease, color .18s ease,
-              box-shadow .18s ease, transform .06s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  transition: background 0.18s ease, color 0.18s ease,
+              box-shadow 0.18s ease, transform 0.06s ease;
   cursor: pointer;
   user-select: none;
 }
 
-#result .btn-cta:hover{
-  background: var(--btn-bg-hover);
-  color: var(--btn-fg-hover);
-  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+#result .btn-cta:hover {
+  background: #fff; /* ✅ 호버 시 흰색 배경 */
+  color: #111; /* ✅ 검정 글씨 */
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
   transform: translateY(-1px);
 }
 
-#result .btn-cta:active{
+#result .btn-cta:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(0,0,0,.16);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
 }
-
-/* 이미지가 클릭을 먹지 않도록 */
-img.img-fluid{ pointer-events:none; }
-/* ===== 버튼 흰 배경 + 검정 테두리 (btn-ghost) ===== */
-#result .btn-cta.btn-ghost {
-  background: #fff;
-  color: #111;
-  border-color: #111;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-#result .btn-cta.btn-ghost:hover {
-  background: #111;
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
-  transform: translateY(-1px);
-}
-
-#result .btn-cta.btn-ghost:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
