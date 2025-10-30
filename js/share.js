@@ -7,6 +7,45 @@ const BASE = (() => {
   }
   return '/';
 })();
+// [추가 #1] Maze 감지 플래그 (URL에 ?maze=1 붙이면 true)
+const IS_MAZE = /[?&]maze=(1|true)\b/i.test(location.search);
+
+// [추가 #2] '공유 화면'에 들어왔는지에 따라 화면에 배너(마커)를 토글
+function ensureSharedMarker(show) {
+  let el = document.getElementById('mazeSharedBanner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mazeSharedBanner';
+        // ✅ [추가: 접근성 속성]
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    // 인라인 스타일: 눈에 잘 띄고 스크린샷에 확실히 보이게
+    el.style.cssText = [
+      'position:fixed',
+      'left:50%',
+      'bottom:16px',
+      'transform:translateX(-50%)',
+      'z-index:9999',
+      'padding:10px 14px',
+      'border-radius:12px',
+      'box-shadow:0 6px 18px rgba(0,0,0,.18)',
+      'background:#111',
+      'color:#fff',
+      'font-weight:700',
+      'font-size:14px',
+      'letter-spacing:.2px'
+    ].join(';');
+    el.textContent = '🔗 링크 복사됨 · 공유 화면';
+    document.body.appendChild(el);
+  }
+  el.style.display = show ? 'block' : 'none';
+}
+
+// [추가 #3] 현재 URL에 맞춰 배너 상태 동기화
+function syncSharedMarkerWithURL() {
+  const onShared = /\/shared\/\d+/.test(location.pathname);
+  ensureSharedMarker(onShared);
+}
 
 // 실제 서비스 도메인 (표시용, UT에서는 안 써도 무방)
 const url = 'https://www.interiormbti.site/';
@@ -24,24 +63,29 @@ let _shareObserver = null;
  */
 function setShare(e) {
   if (e && e.preventDefault) e.preventDefault();
-
   try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
 
   const ts = Date.now();
   const fakePath = `${BASE}shared/${ts}`;
 
   try {
+    // [수정] shared 경로로 이동 + 배너 ON
     window.history.pushState({ maze: 'share' }, '', fakePath);
-    // 조금 기다렸다가 결과 해시로 복귀
+    ensureSharedMarker(true);   // ← 여기!
+
+    // [수정] Maze일 땐 1200ms 정도 머물렀다가 #result로 복귀
+    const delay = IS_MAZE ? 1200 : 300;
     setTimeout(() => {
       const backUrl = `${BASE}#result`;
       window.history.replaceState({ maze: 'result' }, '', backUrl);
-    }, 300);
+      ensureSharedMarker(false);  // 복귀 시 배너 OFF
+      syncSharedMarkerWithURL();   // ← 복귀 직후 최종 상태 재확인
+    }, delay);
   } catch (err) {
     console.error('[Maze] navigation failed:', err);
   }
 
-  // 버튼 피드백(그대로 유지)
+  // (버튼 피드백 기존 로직 그대로 두면 됨)
   const btn = document.getElementById('shareButton');
   if (btn) {
     const prev = btn.textContent;
@@ -53,7 +97,6 @@ function setShare(e) {
     }, 1200);
   }
 }
-
 
 /**
  * #result 영역에 있는 공유 버튼에 '한 번만' 리스너 바인딩
@@ -80,7 +123,19 @@ if (!_shareObserver) {
 // 3) 해시 기반 화면 전환 시도(예: #q/1 -> #result)
 window.addEventListener('hashchange', bindShareButton);
 
-// 4) 탭이 다시 활성화될 때도 보강
+// [추가 #4] 최초 진입 시 배너 상태 동기화
+document.addEventListener('DOMContentLoaded', syncSharedMarkerWithURL);
+
+// [추가 #5] 뒤로가기/앞으로가기 등 history 변화 대응
+window.addEventListener('popstate', syncSharedMarkerWithURL);
+
+// [추가 #6] 해시 변화 대응(#result 등)
+window.addEventListener('hashchange', syncSharedMarkerWithURL);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') bindShareButton();
+ if (document.visibilityState === 'visible') {
+   bindShareButton();
+   syncSharedMarkerWithURL();
+  }
 });
+
+
