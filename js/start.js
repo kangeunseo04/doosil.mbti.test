@@ -101,7 +101,6 @@ function begin(){
       qna.style.display = "block";
     }, 450)
     let qIdx = 0;
-    let qIdx = 0;
     window.location.hash = "#q/0";        // ✅ 첫 문항 진입
     goNext(qIdx);
   }, 450);
