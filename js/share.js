@@ -166,7 +166,7 @@ function bindShareButton() {
 
 // 1) 초기 DOM 로드 시도
 document.addEventListener('DOMContentLoaded', () => {
-  applyMbtIFakePath();        // MBTI 가짜 경로 적용
+  applyMbtiFakePath();        // MBTI 가짜 경로 적용
   bindShareButton();          // 공유 버튼 연결
   syncSharedMarkerWithURL();  // 배너 동기화
 });
