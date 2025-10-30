@@ -2,35 +2,32 @@ name: Deploy static site to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]   # main에 푸시될 때마다 실행
-  workflow_dispatch:        # 수동 실행 버튼 허용
+    branches: [ main ]
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true   # 새 실행이 오면 이전 실행을 자동 취소
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .   # 정적 사이트 루트
+
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # 빌드가 없다면, 현재 저장소 루트(또는 원하는 폴더)를 그대로 업로드
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'   # 예: 'site' 처럼 특정 폴더만 배포하고 싶으면 변경
-
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
-
