@@ -1,55 +1,35 @@
-// 너의 실제 도메인으로 교체
-const url = 'https://www.interiormbti.site/';   // ← 이걸로
-// 맨 위 상단, url 아래에 한 줄 추가
+const url = 'https://www.interiormbti.site/'; // (유지 가능)
 let __shareObserver = null;
-function setShare(){
-  var resultImg = document.querySelector('#resultImg');
-  if (!resultImg || !resultImg.firstElementChild) return; // ✅ 이미지 로드 안 됐으면 함수 종료
-  const resultAlt = resultImg.firstElementChild.alt;
-  const shareTitle = '유형테스트 결과';
-  const shareDes = infoList[resultAlt].name;
-  const shareImage = url + 'img/image-' + resultAlt + '.png';
-  const shareURL = url + 'test_page/' + resultAlt + '_page' + '.html' ;
+// ✅ UT 전용 클릭 처리: 클릭 기록 + 해시 변경
+function setShare(e) {
+  if (e && e.preventDefault) e.preventDefault();
 
-   Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: shareTitle,
-        description: shareDes,
-        imageUrl: shareImage,
-        link: {
-          mobileWebUrl: shareURL,
-          webUrl: shareURL,
-        },
-      },
+  try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
+  console.log('[UT] share button clicked');
 
-    buttons: [
-      {
-        title: '결과 확인하기',
-        link: {
-          mobileWebUrl: shareURL,
-          webUrl: shareURL,
-        }, 
-      },
-    ],
-  });
-}
+  const ts = Date.now();
+  location.hash = `#shared-${ts}`; // Maze가 상태변화로 잡기 쉬움
 
-// ✅ 공유 버튼 한 번만 바인딩
+  const btn = document.getElementById('shareButton');
+  if (btn) {
+    const prev = btn.textContent;
+    btn.textContent = '공유 클릭됨 ✔';
+    btn.setAttribute('aria-pressed', 'true');
+    setTimeout(() => {
+      btn.textContent = prev;
+      btn.removeAttribute('aria-pressed');
+    }, 1200);
+  }
+
+// ✅ 버튼 한 번만 바인딩
 function bindShareButton() {
   const shareBtn = document.getElementById('shareButton');
   if (shareBtn && !shareBtn.dataset.bound) {
     shareBtn.addEventListener('click', setShare);
     shareBtn.dataset.bound = '1';
-
-     // ✅ 바인딩 성공했으면 더 이상 감시 필요 없음
-    if (__shareObserver) __shareObserver.disconnect();
+    if (__shareObserver) __shareObserver.disconnect(); // 바인딩 성공시 관찰 중단
   }
 }
-
-// 초기 DOM 로드 시 한 번
-document.addEventListener('DOMContentLoaded', bindShareButton);
-
 // 초기 DOM 로드 시 한 번
 document.addEventListener('DOMContentLoaded', bindShareButton);
 
