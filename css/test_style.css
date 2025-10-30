@@ -90,6 +90,13 @@ span{
   cursor: pointer;
   font-weight: 400;
 }
+/* 결과 페이지의 공유 버튼 위치/모양 보장 */
+#result .answerList#shareButton {
+  display: block;
+  width: 90%;
+  max-width: 420px;
+  margin: 24px auto 0;   /* 가운데 정렬 */
+}
 #startButton { position: relative; z-index: 1000; pointer-events: auto; }
 img.img-fluid { pointer-events: none; }
 #main::before, #main::after { pointer-events: none; }
