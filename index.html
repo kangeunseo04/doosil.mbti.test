@@ -116,9 +116,10 @@
  <button id="shareButton" class="btn-cta">친구한테 공유하기</button>
 </section>
 
+    <script src="js/share.js" charset="UTF-8"></script>
     <script src="js/data.js" charset="UTF-8"></script>
     <script src="js/start.js" charset="UTF-8"></script>
-    <script src="js/share.js" charset="UTF-8"></script>
+
     <div class="col-lg-6 col-md-6 col-sm-6 col-12 mx-auto mt-5 pb-5" style="text-align: center;">
       <span>
         © 2023 두꺼비선생 Co. Ltd. All Rights Reserved
@@ -126,7 +127,11 @@
     </div>
   </div>
 <script>
+  // ✅ Maze와 JS 함수 실행 순서 보장
   document.addEventListener('DOMContentLoaded', () => {
+    if (typeof applyMbtiFakePath === 'function') {
+      applyMbtiFakePath();
+    }
     window.MAZE_READY = true;
   });
 </script>
