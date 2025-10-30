@@ -105,3 +105,14 @@ function begin(){
     goNext(qIdx);
   }, 450);
 } 
+// ✅ 전역 등록 (onclick으로도 접근 가능하게)
+window.begin = begin;
+
+// ✅ “한 번만” 바인딩되도록 설정
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("startButton");
+  if (btn && !btn.dataset.bound) {
+    btn.addEventListener("click", begin);
+    btn.dataset.bound = "1";
+  }
+});
