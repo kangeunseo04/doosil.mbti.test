@@ -137,5 +137,27 @@ document.addEventListener('visibilitychange', () => {
    syncSharedMarkerWithURL();
   }
 });
+// [Maze 전용] 공유 버튼이 없으면 테스트용으로 주입
+document.addEventListener('DOMContentLoaded', () => {
+  if (!IS_MAZE) return;
+  // 이미 버튼이 있으면 스킵
+  if (document.getElementById('shareButton')) return; 
+
+  const btn = document.createElement('button');
+  btn.id = 'shareButton';
+  btn.type = 'button';
+  btn.textContent = '친구에게 공유하기(테스트)';
+  btn.style.cssText = [
+    'position:fixed','right:16px','bottom:80px','z-index:9999',
+    'padding:12px 16px','border-radius:12px','border:none',
+    'background:#111','color:#fff','font-weight:700','box-shadow:0 6px 18px rgba(0,0,0,.18)',
+  ].join(';');
+
+  document.body.appendChild(btn);
+  // 기존 바인딩 로직 호출
+  bindShareButton();
+  // 혹시 모를 상태 동기화
+  syncSharedMarkerWithURL();
+});
 
 
