@@ -91,12 +91,24 @@ span{
   font-weight: 400;
 }
 /* 결과 화면의 공유 버튼 노출/정렬 보장 */
-#result #shareButton{
-  display:block;
-  width:90%;
-  max-width:420px;
-  margin:24px auto 0;
+#result #shareButton {
+  display: block !important;
+  width: 90%;
+  max-width: 420px;
+  margin: 24px auto 0;
+  text-align: center;
+  background-color: #fff;
+  color: #333;
+  border-radius: 10px;
+  padding: 12px 0;
+  font-weight: 600;
+  cursor: pointer;
 }
-#startButton { position: relative; z-index: 1000; pointer-events: auto; }
-img.img-fluid { pointer-events: none; }
-#main::before, #main::after { pointer-events: none; }
+
+#result #shareButton:hover {
+  background-color: #f1f1f1;
+}
+
+img.img-fluid {
+  pointer-events: none; /* 이미지 클릭이 버튼을 가리지 않도록 */
+}
