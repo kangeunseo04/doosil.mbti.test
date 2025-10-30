@@ -90,22 +90,6 @@ span{
   cursor: pointer;
   font-weight: 400;
 }
-/* ========== 클릭 통과/우선순위 보장 ========== */
-
-/* 1) 시작 버튼을 최상단으로 올리고 실제 클릭 받기 */
-#startButton {
-  position: relative;
-  z-index: 1000;       /* 화면 위로 */
-  pointer-events: auto;/* 클릭 받기 */
-}
-
-/* 2) 히어로 이미지가 버튼을 가리지 않도록 클릭 막기 */
-img.img-fluid {
-  pointer-events: none;/* 이미지에 클릭 전달 안 함(아래로 통과) */
-}
-
-/* 3) 혹시 전폭 오버레이가 있다면(배경/레이어) 클릭 통과 */
-#main::before,
-#main::after {
-  pointer-events: none;
-}
+#startButton { position: relative; z-index: 1000; pointer-events: auto; }
+img.img-fluid { pointer-events: none; }
+#main::before, #main::after { pointer-events: none; }
