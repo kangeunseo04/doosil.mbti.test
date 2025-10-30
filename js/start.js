@@ -38,6 +38,7 @@ function goResult(){
       qna.style.display = "none";
       result.style.display = "block"
     }, 450)})
+    window.location.hash = "#result";     // ✅ 결과 도달
     setResult();
 }
 
@@ -45,6 +46,7 @@ function addAnswer(answerText, qIdx, idx){
   var a = document.querySelector('.answerBox');
   var answer = document.createElement('button');
   answer.classList.add('answerList');
+  answer.setAttribute('data-maze', `q${qIdx}-a${idx}`); // 예: q3-a1
   answer.classList.add('my-3');
   answer.classList.add('py-3');
   answer.classList.add('mx-auto');
@@ -78,6 +80,7 @@ function goNext(qIdx){
     goResult();
     return;
   }
+  window.location.hash = `#q/${qIdx}`;    // ✅ 각 문항 진입마다 해시 변경
 
   var q = document.querySelector('.qBox');
   q.innerHTML = qnaList[qIdx].q;
@@ -98,6 +101,8 @@ function begin(){
       qna.style.display = "block";
     }, 450)
     let qIdx = 0;
+    let qIdx = 0;
+    window.location.hash = "#q/0";        // ✅ 첫 문항 진입
     goNext(qIdx);
   }, 450);
 } 
