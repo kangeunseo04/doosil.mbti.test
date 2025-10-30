@@ -1,15 +1,25 @@
-const url = 'https://www.interiormbti.site/'; // (유지 가능)
+// 실제 서비스 도메인 (표시용, UT에서는 안 써도 무방)
+const url = 'https://www.interiormbti.site/';
+
 let __shareObserver = null;
-// ✅ UT 전용 클릭 처리: 클릭 기록 + 해시 변경
+
+/**
+ * UT 전용 공유 버튼 핸들러
+ * - 카카오 호출 없이 클릭 기록만 남기고
+ * - 해시를 바꿔 Maze가 상태 변화를 인지하도록 함
+ */
 function setShare(e) {
   if (e && e.preventDefault) e.preventDefault();
 
+  // 1) 클릭 기록
   try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
   console.log('[UT] share button clicked');
 
+  // 2) 해시 변경 (매 클릭마다 달라지게 타임스탬프 추가)
   const ts = Date.now();
-  location.hash = `#shared-${ts}`; // Maze가 상태변화로 잡기 쉬움
+  location.hash = `#shared-${ts}`;
 
+  // 3) 시각 피드백 (선택)
   const btn = document.getElementById('shareButton');
   if (btn) {
     const prev = btn.textContent;
@@ -20,19 +30,24 @@ function setShare(e) {
       btn.removeAttribute('aria-pressed');
     }, 1200);
   }
+}
 
-// ✅ 버튼 한 번만 바인딩
+/**
+ * 버튼에 핸들러 1회만 바인딩
+ */
 function bindShareButton() {
   const shareBtn = document.getElementById('shareButton');
   if (shareBtn && !shareBtn.dataset.bound) {
     shareBtn.addEventListener('click', setShare);
     shareBtn.dataset.bound = '1';
-    if (__shareObserver) __shareObserver.disconnect(); // 바인딩 성공시 관찰 중단
+    // 바인딩 성공했으면 옵저버 중단 (불필요한 관찰 방지)
+    if (__shareObserver) __shareObserver.disconnect();
   }
 }
-// 초기 DOM 로드 시 한 번
+
+// 초기 DOM 로드 시 1회 바인딩 시도
 document.addEventListener('DOMContentLoaded', bindShareButton);
 
-// 동적 업데이트 대비: 버튼이 DOM에 나타나면 한 번만 바인딩하고 감시 종료
+// 동적 DOM 변화 대비: 버튼이 늦게 나타나도 바인딩되도록 관찰
 __shareObserver = new MutationObserver(bindShareButton);
 __shareObserver.observe(document.body, { childList: true, subtree: true });
