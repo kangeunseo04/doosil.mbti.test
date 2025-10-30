@@ -1,5 +1,7 @@
-const url = 'https://incredible-malasada-1a045c.netlify.app/';
-
+// 너의 실제 도메인으로 교체
+const url = 'https://www.interiormbti.site/';   // ← 이걸로
+// 맨 위 상단, url 아래에 한 줄 추가
+let __shareObserver = null;
 function setShare(){
   var resultImg = document.querySelector('#resultImg');
   if (!resultImg || !resultImg.firstElementChild) return; // ✅ 이미지 로드 안 됐으면 함수 종료
@@ -39,12 +41,18 @@ function bindShareButton() {
   if (shareBtn && !shareBtn.dataset.bound) {
     shareBtn.addEventListener('click', setShare);
     shareBtn.dataset.bound = '1';
+
+     // ✅ 바인딩 성공했으면 더 이상 감시 필요 없음
+    if (__shareObserver) __shareObserver.disconnect();
   }
 }
 
 // 초기 DOM 로드 시 한 번
 document.addEventListener('DOMContentLoaded', bindShareButton);
 
-// 페이지가 동적으로 업데이트될 경우도 감지
-const observer = new MutationObserver(() => bindShareButton());
-observer.observe(document.body, { childList: true, subtree: true });
+// 초기 DOM 로드 시 한 번
+document.addEventListener('DOMContentLoaded', bindShareButton);
+
+// 동적 업데이트 대비: 버튼이 DOM에 나타나면 한 번만 바인딩하고 감시 종료
+__shareObserver = new MutationObserver(bindShareButton);
+__shareObserver.observe(document.body, { childList: true, subtree: true });
