@@ -106,3 +106,13 @@ function begin(){
     goNext(qIdx);
   }, 450);
 } 
+// --- 파일 맨 아래에 추가 ---
+window.begin = begin;   // ✅ begin()을 전역(window)에 확실히 노출
+
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('startButton');
+  if (btn && !btn.dataset.bound) {
+    btn.addEventListener('click', begin); // ✅ 인라인이 막혀도 동작
+    btn.dataset.bound = '1';
+  }
+});
