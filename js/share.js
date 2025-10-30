@@ -13,10 +13,8 @@ const IS_MAZE = /[?&]maze=(1|true)\b/i.test(location.search);
 // ✅ MBTI 문자열 감지 (ENFP/ISTJ 등)
 function detectMBTI() {
   // 1) data-mbti 우선
-  const el = document.getElementById('result');
-  if (!el) return '';
-+ const byAttr = el.getAttribute('data-mbti');
-  if (byAttr && /^[EI][NS][FT][JP]$/i.test(byAttr)) return byAttr.toUpperCase();
+const el = document.getElementById('result');
+const byAttr = el && el.getAttribute('data-mbti');
 
   // 2) 화면 텍스트에서 추출 (예: <span class="mbti-type">ENFP</span>)
   const txtEl = document.querySelector('#result .mbti-type, .mbti-type');
