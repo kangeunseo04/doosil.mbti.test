@@ -1,3 +1,13 @@
+// js/share.js 맨 위 근처에 추가
+const BASE = (() => {
+  const { hostname, pathname } = location;
+  if (hostname.endsWith('github.io')) {
+    const segs = pathname.split('/').filter(Boolean);
+    return segs.length ? `/${segs[0]}/` : '/';
+  }
+  return '/';
+})();
+
 // 실제 서비스 도메인 (표시용, UT에서는 안 써도 무방)
 const url = 'https://www.interiormbti.site/';
 // js/share.js
@@ -15,31 +25,23 @@ let _shareObserver = null;
 function setShare(e) {
   if (e && e.preventDefault) e.preventDefault();
 
-  // 1) 클릭 로그
-  try {
-    sessionStorage.setItem('shareClicked', '1');
-    console.log('[UT] share button clicked');
-  } catch (_) {}
+  try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
 
-  // 2) Maze가 "새 페이지 방문"으로 인식하도록 URL 변경
   const ts = Date.now();
-  const fakePath = '/shared/' + ts;
+  const fakePath = `${BASE}shared/${ts}`;
 
   try {
     window.history.pushState({ maze: 'share' }, '', fakePath);
-    console.log('[Maze Trick] navigated to', fakePath);
-
-    // 2-1) 짧게 기다렸다가 결과 페이지 해시로 복귀
+    // 조금 기다렸다가 결과 해시로 복귀
     setTimeout(() => {
-      const backUrl = '/#result';
+      const backUrl = `${BASE}#result`;
       window.history.replaceState({ maze: 'result' }, '', backUrl);
-      console.log('[Maze Trick] back to', backUrl);
     }, 300);
   } catch (err) {
-    console.error('Maze navigation trick failed', err);
+    console.error('[Maze] navigation failed:', err);
   }
 
-  // 3) 버튼 피드백 (문구 잠깐 바꾸기)
+  // 버튼 피드백(그대로 유지)
   const btn = document.getElementById('shareButton');
   if (btn) {
     const prev = btn.textContent;
@@ -52,11 +54,12 @@ function setShare(e) {
   }
 }
 
+
 /**
  * #result 영역에 있는 공유 버튼에 '한 번만' 리스너 바인딩
  */
 function bindShareButton() {
-  const shareBtn = document.querySelector('#result #shareButton');
+ const shareBtn = document.querySelector('#result #shareButton, #shareButton');
   if (shareBtn && !shareBtn.dataset.bound) {
     // preventDefault를 쓰므로 passive:false
     shareBtn.addEventListener('click', setShare, { passive: false });
