@@ -18,7 +18,7 @@ var byAttr = '';
 if (el && typeof el.getAttribute === 'function') {
   byAttr = el.getAttribute('data-mbti') || '';
 }
-if (byAttr && /^[EI|NS|TF|JP]{3}$/i.test(byAttr)) {
+if (byAttr && /^[EI][NS][FT][JP]$/i.test(byAttr)) {
   return byAttr.toUpperCase();
 }
 
@@ -93,9 +93,6 @@ function syncSharedMarkerWithURL() {
   const onShared = /\/shared\/\d+/.test(location.pathname);
   ensureSharedMarker(onShared);
 }
-
-// 실제 서비스 도메인 (표시용, UT에서는 안 써도 무방)
-const url = 'https://www.interiormbti.site/';
 // js/share.js
 
 // (선택) 도메인 메모: https://www.interiormbti.site/
@@ -108,44 +105,6 @@ let _shareObserver = null;
  * - 짧은 지연 후 원래 URL로 복귀 (replaceState)
  * - 버튼 피드백 UI
  */
-function setShare(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
-
-  const ts = Date.now();
-  const fakePath = `${BASE}shared/${ts}`;
-
-  try {
-    // [수정] shared 경로로 이동 + 배너 ON
-    window.history.pushState({ maze: 'share' }, '', fakePath);
-    ensureSharedMarker(true);   // ← 여기!
-
-    // [수정] Maze일 땐 1200ms 정도 머물렀다가 #result로 복귀
-    const delay = IS_MAZE ? 1200 : 300;
-    setTimeout(() => {
-    const mbti = detectMBTI();
-    const backUrl = buildResultURL(mbti);   // ✅ ENFP라면 /result-ENFP#result 로 복원
-      window.history.replaceState({ maze: 'result' }, '', backUrl);
-      ensureSharedMarker(false);  // 복귀 시 배너 OFF
-      syncSharedMarkerWithURL();   // ← 복귀 직후 최종 상태 재확인
-    }, delay);
-  } catch (err) {
-    console.error('[Maze] navigation failed:', err);
-  }
-
-  // (버튼 피드백 기존 로직 그대로 두면 됨)
-  const btn = document.getElementById('shareButton');
-  if (btn) {
-    const prev = btn.textContent;
-    btn.textContent = '공유 완료!';
-    btn.setAttribute('aria-pressed', 'true');
-    setTimeout(() => {
-      btn.textContent = prev;
-      btn.removeAttribute('aria-pressed');
-    }, 1200);
-  }
-}
-
 /**
  * #result 영역에 있는 공유 버튼에 '한 번만' 리스너 바인딩
  */
@@ -254,10 +213,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (shareBtn && !shareBtn.dataset.qa) shareBtn.setAttribute('data-qa', 'btn-share');
 
   // 태그/스토리카드 클릭 타겟 라벨링 (button, a, role="button" 모두)
-  const targets = document.querySelectorAll(
-  '#result .tag-list button, #result .tag-list [role="button"], ' +
-  '#result .story-card button, #result .story-card a[href], #result .story-card [role="button"]'
-  );
+ const targets = document.querySelectorAll(
+  '#result .tag-list button, ' +
+  '#result .tag-list [role="button"], ' +
+  **'#result .tag-list a[href],' +
+  '#result .story-card button, ' +
+  '#result .story-card a[href], ' +
+  '#result .story-card [role="button"]'
+);
 
   let i = 1;
   targets.forEach(el => {
@@ -274,7 +237,8 @@ function markEvent(name, stayMs = 1000) {
     const back = location.href;
     const ts = Date.now();
     // 경로에서 특수문자 제거(슬래시, 영숫자, -, _만 허용)
-    const cleanPath = location.pathname.replace(/[^/a-z0-9_\-]/gi, '');
+   // (A) 슬래시만 제거
+const cleanPath = location.pathname.replace(/[^\w-]/g, ''); // 영문/숫자/밑줄/하이픈만 남김
     history.pushState({ maze: 'event' }, '', `${cleanPath}/ev-${name}-${ts}`);
     setTimeout(() => history.replaceState({}, '', back), stayMs);
   } catch (_) {}
@@ -291,11 +255,11 @@ function isMaze() {
 }
 
 // 공유 버튼 핸들러 내부(setShare) 가장 처음: 클릭 열기
-try { markEvent(`share-open-${currentMbtiSafe()}`); } catch {}
+try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_e) {}
 
 async function setShare(e) {
   if (e && e.preventDefault) e.preventDefault();
-  try { sessionStorage.setItem('shareClicked', '1'); } catch {}
+  try { sessionStorage.setItem('shareClicked', '1'); } catch (_e) {}
 
   const ts = Date.now();
   const fakePath = `${BASE}shared/${ts}`;
@@ -306,7 +270,7 @@ async function setShare(e) {
     ensureSharedMarker(true); // 배너 ON
 
     // 2) (선택) 공유 UI 열기 시점 로깅
-    try { markEvent(`share-open-${currentMbtiSafe()}`); } catch {}
+    try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_e) {}
 
     // 3) 네이티브 공유 시도 로깅
     if (navigator.share) {
@@ -322,17 +286,14 @@ async function setShare(e) {
     } catch {}
 
     // 5) Maze가 화면 스냅샷/체크할 시간을 조금 준 뒤 원래 해시로 복귀
-    const delay = IS_MAZE ? 1200 : 300;
-    setTimeout(() => {%
-      \
-      const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result 또는 /#result
-      window.history.replaceState({ maze: 'result' }, '', backUrl);
-      ensureSharedMarker(false);    // 배너 OFF
-      syncSharedMarkerWithURL();    // 상태 재확인
-    }, delay);
-  } catch (err) {
-    console.error('[Maze] navigation failed:', err);
-  }
+  const delay = IS_MAZE ? 1200 : 300;
+setTimeout(() => {
+  const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result 또는 /#result
+  window.history.replaceState({ maze: 'result' }, '', backUrl);
+  ensureSharedMarker(false);    // 배너 OFF
+  syncSharedMarkerWithURL();    // 상태 재확인
+}, delay);
+
 
   // (선택) 버튼 피드백 UI 유지
   const btn = document.getElementById('shareButton');
