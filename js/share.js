@@ -120,7 +120,6 @@ document.addEventListener('click', (e) => {
   // 공유 버튼이면 여기서는 아무 것도 하지 않고 바로 종료
   if (e.target.closest('#shareButton')) return;
     // ... (태그/스토리 카드 처리 기존 코드)
-}, { capture: true });
 
   // (아래는 기존 태그/스토리카드 처리 로직)
   const el = e.target.closest(
@@ -134,7 +133,8 @@ document.addEventListener('click', (e) => {
 
   if (isMaze()) {
     e.preventDefault();
-    const name = el.getAttribute('data-qa') || (el.closest('.story-card') ? 'story' : 'tag');
+    const name = el.getAttribute('data-qa') ||
+                (el.closest('.story-card') ? 'story' : 'tag');
     markEvent(`${name}-${currentMbtiSafe()}`);
   }
 }, { capture: true }); // ← 이것도 캡처 단계 권장
@@ -142,7 +142,9 @@ document.addEventListener('click', (e) => {
   // data-qa 자동 부여 (01~)
   if (!el.getAttribute('data-qa')) {
     const siblings = el.parentElement ? [...el.parentElement.children] : [];
-    const idx = String((siblings.filter(s => s.hasAttribute?.('data-qa')).length) + 1).padStart(2,'0');
+    const idx = String(
+      (siblings.filter(s => s.hasAttribute && s.hasAttribute('data-qa')).length + 1
+    ).padStart(2, '0');
     el.setAttribute('data-qa', `tag-${idx}`);
   }
 }, { passive: false });
@@ -260,8 +262,6 @@ window.isMaze = isMaze;
 window.applyMbtiFakePath = applyMbtiFakePath;
 Object.defineProperty(window, 'IS_MAZE', { get: () => isMaze() }); // 콘솔에서 IS_MAZE 입력 시 true/false
 // 이미 있는 전역 노출 라인들 아래에 이어서 붙이세요.
-window.isMaze = isMaze;
-window.applyMbtifakePath = applyMbtifakePath;
 
 // 강제 차단 핸들러 (인라인 onclick이 이걸 부름)
 window.__onShareClick = function (e) {
