@@ -7,8 +7,14 @@ const BASE = (() => {
   }
   return '/';
 })();
-// [추가 #1] Maze 감지 플래그 (URL에 ?maze=1 붙이면 true)
-const IS_MAZE = /[?&]maze=(1|true)\b/i.test(location.search);
+// BASE 정의 바로 아래에 넣어주세요
+function isMaze() {
+  try {
+    return /[?&]maze=(1|true)\b/i.test(location.search);
+  } catch (_) {
+    return false;
+  }
+}
 
 // ✅ MBTI 문자열 감지 (ENFP/ISTJ 등)
 function detectMBTI() {
