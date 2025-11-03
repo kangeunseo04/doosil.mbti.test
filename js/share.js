@@ -18,7 +18,7 @@ var byAttr = '';
 if (el && typeof el.getAttribute === 'function') {
   byAttr = el.getAttribute('data-mbti') || '';
 }
-if (byAttr && /^[EI][NS][FT][PJ]$/i.test(byAttr)) {
+if (byAttr && /^[EI|NS|TF|JP]{3}$/i.test(byAttr)) {
   return byAttr.toUpperCase();
 }
 
@@ -271,15 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
 // 📌 0) 공통 유틸: 가짜 URL 표식 (무료 플랜용)
 function markEvent(name, stayMs = 1000) {
   try {
- // 274 줄 부근
-const back = location.href;
-const ts = Date.now();
-// 끝 슬래시만 제거(여러 개도 안전하게)
-const cleanPath = location.pathname.replace(/\/+$/, '') || '/';
-
-history.pushState({ maze: 'event' }, '', `${cleanPath}/ev-${name}-${ts}`);
-setTimeout(() => history.replaceState({}, '', back), stayMs);
-      
+    const back = location.href;
+    const ts = Date.now();
+    // 경로에서 특수문자 제거(슬래시, 영숫자, -, _만 허용)
+    const cleanPath = location.pathname.replace(/[^/a-z0-9_\-]/gi, '');
+    history.pushState({ maze: 'event' }, '', `${cleanPath}/ev-${name}-${ts}`);
+    setTimeout(() => history.replaceState({}, '', back), stayMs);
+  } catch (_) {}
 }
 
 // MBTI 추출 (이미 있는 detectMBTI() 재사용)
