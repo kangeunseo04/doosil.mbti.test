@@ -114,7 +114,6 @@ function bindShareButton() {
 
   // Maze 모드에서는 클릭 이벤트 표식 남기기
   if (isMaze()) shareBtn.addEventListener('click', () => markEvent('share'));
-}
 
 // 🔧 여기부터 한 덩어리로 교체
 document.addEventListener(
