@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/" />
   <meta name="description" content="과연 나와 어울리는 라이프스타일은 무엇일까요?">
   <meta property="og:title" content="라이프스타일 취향찾기 테스트">
   <meta property="og:url" content="https://doosiltest.netlify.app/">
@@ -109,7 +110,7 @@
   <div class="resultDesc mt-3 mb-3"></div>
 
   <!-- 공유하기 버튼을 결과 섹션 안으로 이동 -->
- <button id="shareButton" class="btn-cta">친구한테 공유하기</button>
+ <button id="shareButton" type="button" class="btn-cta">친구한테 공유하기</button>
 </section>
 
     <script src="js/share.js" charset="UTF-8"></script>
@@ -123,7 +124,6 @@
     </div>
   </div>
 <script>
-  // ✅ Maze와 JS 함수 실행 순서 보장
   document.addEventListener('DOMContentLoaded', () => {
     if (typeof applyMbtiFakePath === 'function') {
       applyMbtiFakePath();
@@ -131,5 +131,6 @@
     window.MAZE_READY = true;
   });
 </script>
+
 </body>
 </html>
