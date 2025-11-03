@@ -110,7 +110,14 @@
   <div class="resultDesc mt-3 mb-3"></div>
 
   <!-- 공유하기 버튼을 결과 섹션 안으로 이동 -->
- <button id="shareButton" type="button" class="btn-cta">친구한테 공유하기</button>
+<button
+  id="shareButton"
+  type="button"
+  class="btn-cta"
+  onclick="return window.__onShareClick && window.__onShareClick(event)">
+  친구한테 공유하기
+</button>
+
 </section>
 
     <script src="js/share.js" charset="UTF-8"></script>
