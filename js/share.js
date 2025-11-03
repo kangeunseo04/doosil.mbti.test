@@ -132,15 +132,17 @@ document.addEventListener(
     );
     if (!el) return;
 
-    // Maze 모드에서만 가짜 URL 이벤트 남김
-    if (isMaze()) {
-      e.preventDefault();
-      const name =
-        el.getAttribute('data-qa') ||
-        (el.closest('.story-card') ? 'story' : 'tag');
-      // ⬇️ 네 함수명이 currentMbtiSafe 인지 확인!
-      markEvent(`${name}-${currentMbtiSafe()}`);
-    }
+   // ... (if (!el) return; 다음)
+
+// Maze 모드에서만 가짜 URL 이벤트 남김 (<- 이 로직을 항상 실행하도록 조건문 제거)
+// if (isMaze()) { // <-- 이 줄을 삭제 (또는 //로 주석 처리)
+  e.preventDefault();
+  const name =
+    el.getAttribute('data-qa') ||
+    (el.closest('.story-card') ? 'story' : 'tag');
+  // ...
+  markEvent(`s-${name}-${currentMbtiSafe()}`);
+// } // <-- 이 줄을 삭제 (또는 //로 주석 처리)
 
     // data-qa 자동 부여 (선택)
     if (!el.getAttribute('data-qa')) {
