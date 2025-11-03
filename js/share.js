@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 📌 0) 공통 유틸: 가짜 URL 표식 (무료 플랜용)
-function markEvent(name, stayMs = 1000) {
+function markEvent(name, stayMs = 1500) {
   try {
     const back = location.href;
     const ts = Date.now();
@@ -308,3 +308,9 @@ setTimeout(() => {
     }, 1200);
   }
 }
+// 디버깅/테스트용 전역 노출
+window.isMaze = isMaze;                      // 함수 그대로 노출
+window.applyMbtiFakePath = applyMbtiFakePath;
+Object.defineProperty(window, 'IS_MAZE', {   // 항상 최신값으로 보이게 getter
+  get: () => isMaze()
+});
