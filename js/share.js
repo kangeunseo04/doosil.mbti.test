@@ -108,21 +108,19 @@ let _shareObserver = null;
 /**
  * #result 영역에 있는 공유 버튼에 '한 번만' 리스너 바인딩
  */
+// ✅ #result 영역의 공유 버튼에 '한 번만' 리스너 바인딩
 function bindShareButton() {
- const shareBtn = document.querySelector('#result #shareButton, #shareButton');
-  if (shareBtn && !shareBtn.dataset.bound) {
-    // preventDefault를 쓰므로 passive:false
-    shareBtn.addEventListener('click', setShare, { passive: false });
-    shareBtn.dataset.bound = '1';
-    // console.log('[bind] share button bound');
-  }
-  if (shareBtn && !shareBtn.dataset.bound) {
+  const shareBtn = document.querySelector('#result #shareButton, #shareButton');
+  if (!shareBtn || shareBtn.dataset.bound) return;
+
+  // preventDefault 쓸 거라 passive:false
   shareBtn.addEventListener('click', setShare, { passive: false });
   shareBtn.dataset.bound = '1';
-  // ✅ Maze에서만 클릭 카운트 URL 남기기
-  if (IS_MAZE) shareBtn.addEventListener('click', () => markEvent('share'));
+
+  // Maze 모드에서만 클릭 이벤트 표식 남기기
+  if (isMaze()) shareBtn.addEventListener('click', () => markEvent('share'));
 }
-}
+
 // ✅ 태그/스토리카드 클릭 카운트 (외부 이동 X, Maze일 때만)
 document.addEventListener('click', (e) => {
   const el = e.target.closest(
@@ -135,27 +133,25 @@ document.addEventListener('click', (e) => {
   if (!el) return;
 
   const qa = el.getAttribute('data-qa') || '';
-  // Maze 모드에서만 실제 네비게이션을 막고, 가짜 URL로 이벤트만 남김
-  if (IS_MAZE) {
+
+  // Maze 모드에선 실제 네비게이션 막고, 가짜 URL로 이벤트만 남김
+  if (isMaze()) {
     e.preventDefault();
     markEvent(qa || (el.closest('.story-card') ? 'story' : 'tag'));
   }
-}, true); // ← capture=true로 다른 핸들러보다 먼저 가로채기
 
-  targets.forEach((el, i) => {
-    if (!el.getAttribute('data-qa')) {
-      el.setAttribute('data-qa', `tag-${String(i + 1).padStart(2, '0')}`);
-    }
-el.addEventListener('click', (e) => {
-  if (IS_MAZE) {
-    e.preventDefault();
-    e.stopPropagation();
+  // 필요 시 data-qa 자동 부여 (01~)
+  if (!el.getAttribute('data-qa')) {
+    const i = [...(el.parentElement?.querySelectorAll('[data-qa]') || [])].length + 1;
+    el.setAttribute('data-qa', `tag-${String(i).padStart(2, '0')}`);
   }
-  const name = el.getAttribute('data-qa') || 'card';
-  markEvent(`card-${name}-${currentMbtiSafe()}`);
-}, { passive: false });
 
-  });
+  // 1회성 기록용 보조 리스너(네비 막지 않는 일반 클릭 처리)
+  el.addEventListener('click', (ev) => {
+    if (isMaze()) { ev.preventDefault(); ev.stopPropagation(); }
+    const name = el.getAttribute('data-qa') || 'card';
+    markEvent(`${name}-${currentMbtiSafe()}`);
+  }, { passive: false, once: true });
 });
 
   const btn = document.createElement('button');
@@ -308,9 +304,8 @@ setTimeout(() => {
     }, 1200);
   }
 }
-// 디버깅/테스트용 전역 노출
-window.isMaze = isMaze;                      // 함수 그대로 노출
+// 디버그/테스트용 전역 노출
+window.isMaze = isMaze;
 window.applyMbtiFakePath = applyMbtiFakePath;
-Object.defineProperty(window, 'IS_MAZE', {   // 항상 최신값으로 보이게 getter
-  get: () => isMaze()
-});
+Object.defineProperty(window, 'IS_MAZE', { get: () => isMaze() }); // 콘솔에서 IS_MAZE 조회용
+
