@@ -117,62 +117,33 @@ function bindShareButton() {
     // console.log('[bind] share button bound');
   }
 }
-
-// 1) 초기 DOM 로드 시도
-document.addEventListener('DOMContentLoaded', () => {
-  applyMbtiFakePath();        // MBTI 가짜 경로 적용
-  bindShareButton();          // 공유 버튼 연결
-  syncSharedMarkerWithURL();  // 배너 동기화
-});
-
-
-// 2) 결과 섹션/버튼이 동적으로 생기는 경우 감시
-if (!_shareObserver) {
- _shareObserver = new MutationObserver(() => bindShareButton());
-  _shareObserver.observe(document.body, { childList: true, subtree: true });
-}
-
-// 3) 해시 기반 화면 전환 시도(예: #q/1 -> #result)
-window.addEventListener('hashchange', bindShareButton);
-
-// [추가 #4] 최초 진입 시 배너 상태 동기화
-document.addEventListener('DOMContentLoaded', syncSharedMarkerWithURL);
-
-// [추가 #5] 뒤로가기/앞으로가기 등 history 변화 대응
-window.addEventListener('popstate', syncSharedMarkerWithURL);
-
-// [추가 #6] 해시 변화 대응(#result 등)
-window.addEventListener('hashchange', syncSharedMarkerWithURL);
-document.addEventListener('visibilitychange', () => {
- if (document.visibilityState === 'visible') {
-   bindShareButton();
-   syncSharedMarkerWithURL();
-  }
-});
-// [Maze 전용] 공유 버튼이 없으면 테스트용으로 주입
-document.addEventListener('DOMContentLoaded', () => {
+// [NEW] Maze 모드에서 #result 내부의 모든 클릭을 ‘현재 단계’에서 가로채어 이동을 차단
+document.addEventListener('click', (e) => {
   if (!IS_MAZE) return;
-  // 이미 버튼이 있으면 스킵
-  if (document.getElementById('shareButton')) return; 
 
-  document.addEventListener('DOMContentLoaded', () => {
-  if (!isMaze()) return;
-  if (!location.hash || location.hash !== '#result') return;
-
-  const mbti = currentMbtiSafe();
-  // 3초 체류
-  setTimeout(() => markEvent(`view-3s-${mbti}`), 3000);
-  // 10초 체류
-  setTimeout(() => markEvent(`view-10s-${mbti}`), 10000);
-});
-
-  document.addEventListener('DOMContentLoaded', () => {
-  if (!isMaze()) return;
-
-  const mbti = currentMbtiSafe();
-  const targets = document.querySelectorAll(
-    '#result .story-card, #result .tag-list button, #result .tag-list [role="button"]'
+  // 결과/추천 영역에서 발생한 클릭만 가로채기
+  const hit = e.target.closest(
+    '#result a, #result button,' +                 // 결과 영역 내 a, button
+    '#result .story-card a, #result .story-card button,' +
+    '#result .tag-list a, #result .tag-list button,' +
+    '#recommend a, #recommend button'              // 추천 CTA 영역(섹션 id 예시)
   );
+  if (!hit) return;
+
+  // Maze에서는 절대 외부/다른 페이지로 이동시키지 않음
+  // (절대링크, 상대링크 모두 차단)
+  e.preventDefault();
+  e.stopPropagation();
+
+  // data-qa 라벨 추출(없으면 카드로 통일)
+  const qa =
+    hit.getAttribute('data-qa') ||
+    (hit.closest('[data-qa]') ? hit.closest('[data-qa]').getAttribute('data-qa') : 'card');
+
+  try { markEvent(`card-${qa}-${currentMbtiSafe()}`); } catch {}
+
+}, { capture: true });  // ← 캡처 단계에서 가장 먼저 가로채도록 유지
+
 
   targets.forEach((el, i) => {
     if (!el.getAttribute('data-qa')) {
@@ -221,6 +192,20 @@ document.addEventListener('DOMContentLoaded', () => {
   '#result .story-card a[href], ' +
   '#result .story-card [role="button"]'
 );
+document.addEventListener('DOMContentLoaded', () => {
+  // 추천 CTA (스토리카드 보러가기 등)
+  const cta = document.querySelector('#recommend a, #recommend button, #go-story');
+  if (!cta) return;
+
+  // Maze 모드에서는 외부로 빠지는 링크를 해시 기반 내부 링크로 강제 변경
+  if (IS_MAZE) {
+    cta.setAttribute('href', '#result');  // ← 여기 핵심!
+  } else if (cta.tagName === 'A') {
+    cta.setAttribute('href', `${location.pathname}#result`);
+  }
+
+  if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
+});
 
   let i = 1;
   targets.forEach(el => {
@@ -231,6 +216,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+// 추천 CTA href/data-qa 강제 고정 + 변경 감시
+document.addEventListener('DOMContentLoaded', () => {
+  const fixCTA = () => {
+    const cta = document.querySelector('#recommend a, #recommend button, #go-story');
+    if (!cta) return;
+
+    // 결과 섹션으로만 이동하게 강제(절대링크/외부링크 무력화)
+    if (cta.tagName === 'A') cta.setAttribute('href', `${location.pathname}#result`);
+    if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
+  };
+
+  // 최초 1회 고정
+  fixCTA();
+
+  // 이후 DOM 변경으로 href가 덮이면 즉시 재고정
+  const mo = new MutationObserver(() => fixCTA());
+  mo.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['href'] });
+});
+
 // 📌 0) 공통 유틸: 가짜 URL 표식 (무료 플랜용)
 function markEvent(name, stayMs = 1000) {
   try {
