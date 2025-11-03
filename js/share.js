@@ -107,16 +107,22 @@ function bindShareButton() {
   const shareBtn = document.querySelector('#result #shareButton, #shareButton');
   if (!shareBtn || shareBtn.dataset.bound) return;
 
-  // preventDefault 사용할 거라 passive:false
-  shareBtn.addEventListener('click', setShare, { passive: false });
+  // 캡처 단계에서 가장 먼저 잡는다
+  shareBtn.addEventListener('click', setShare, { passive: false, capture: true });
   shareBtn.dataset.bound = '1';
+}
 
   // Maze 모드에서는 클릭 이벤트 표식 남기기
   if (isMaze()) shareBtn.addEventListener('click', () => markEvent('share'));
 }
 
-/** 태그/스토리카드 클릭 카운트 (외부 이동 방지: Maze일 때만) */
 document.addEventListener('click', (e) => {
+  // 공유 버튼이면 여기서는 아무 것도 하지 않고 바로 종료
+  if (e.target.closest('#shareButton')) return;
+    // ... (태그/스토리 카드 처리 기존 코드)
+}, { capture: true });
+
+  // (아래는 기존 태그/스토리카드 처리 로직)
   const el = e.target.closest(
     '#result .tag-list button, ' +
     '#result .tag-list [role="button"], ' +
@@ -126,13 +132,12 @@ document.addEventListener('click', (e) => {
   );
   if (!el) return;
 
-  // Maze 모드에서는 네비게이션 막고, 가짜 URL 이벤트만 남김
   if (isMaze()) {
     e.preventDefault();
-    const name = el.getAttribute('data-qa') ||
-      (el.closest('.story-card') ? 'story' : 'tag');
+    const name = el.getAttribute('data-qa') || (el.closest('.story-card') ? 'story' : 'tag');
     markEvent(`${name}-${currentMbtiSafe()}`);
   }
+}, { capture: true }); // ← 이것도 캡처 단계 권장
 
   // data-qa 자동 부여 (01~)
   if (!el.getAttribute('data-qa')) {
@@ -160,7 +165,8 @@ document.addEventListener('visibilitychange', () => {
 
 /** 추천 CTA(스토리카드 브릿지 등) 내부 링크 강제 */
 function fixCTA() {
-  const cta = document.querySelector('#recommend a, #recommend button, #go-story');
+// OK: recommend/스토리 CTA만
+const cta = document.querySelector('#recommend a, #recommend button, #go-story');
   if (!cta) return;
   if (isMaze()) {
     if (cta.tagName === 'A') cta.setAttribute('href', '#result');
@@ -193,46 +199,50 @@ function markEvent(name, stayMs = 1500) {
   } catch (_) {}
 }
 
-/** 공유 핸들러 */
 async function setShare(e) {
-  if (e && e.preventDefault) e.preventDefault();
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+  if (e && typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+
   try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
 
   const ts = Date.now();
   const fakePath = `${BASE}shared/${ts}`;
 
-  try {
-    // 1) 임시로 /shared/<ts> 로 바꿔서 Maze가 클릭을 감지하게
+  // Maze일 때만 가짜 URL 노출
+  if (isMaze()) {
     window.history.pushState({ maze: 'share' }, '', fakePath);
-    ensureSharedMarker(true); // 배너 ON
+    ensureSharedMarker(true);
+  }
 
-    // 2) (선택) 공유 UI 열기 시도 로깅
-    try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_) {}
+  try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_) {}
 
-    // 3) 네이티브 공유 시도
-    if (navigator.share) {
-      await navigator.share({ title: document.title, url: location.href })
-        .then(() => markEvent(`share-native-${currentMbtiSafe()}`))
-        .catch(() => {});
-    }
-
-    // 4) (대비책) 링크 복사
+  // 네이티브 공유 (가능한 경우)
+  if (navigator.share) {
     try {
-      await navigator.clipboard.writeText(location.href);
-      markEvent(`share-copy-${currentMbtiSafe()}`);
-    } catch (_) {}
+      await navigator.share({ title: document.title, url: location.href });
+      markEvent(`share-native-${currentMbtiSafe()}`);
+    } catch { /* 취소해도 무시 */ }
+  }
 
-    // 5) Maze가 화면/센서/체류시간 조금 잡은 뒤 원래 해시로 복귀
-    const delay = isMaze() ? 1200 : 300;
+  // 복사 fallback
+  try {
+    await navigator.clipboard.writeText(location.href);
+    markEvent(`share-copy-${currentMbtiSafe()}`);
+  } catch {}
+
+  // 원래 URL로 복귀 (Maze일 때만)
+  if (isMaze()) {
+    const delay = 1200;
     setTimeout(() => {
-      const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result 또는 /#result
+      const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result or /#result
       window.history.replaceState({ maze: 'result' }, '', backUrl);
-      ensureSharedMarker(false);       // 배너 OFF
-      syncSharedMarkerWithURL();       // 상태 재확인
+      ensureSharedMarker(false);
+      syncSharedMarkerWithURL();
     }, delay);
-  } catch (_) {}
-  
-  // (선택) 버튼 피드백 UI 유지
+  }
+
+  // 버튼 피드백 (그대로 유지)
   const btn = document.getElementById('shareButton');
   if (btn) {
     const prev = btn.textContent;
@@ -249,3 +259,19 @@ async function setShare(e) {
 window.isMaze = isMaze;
 window.applyMbtiFakePath = applyMbtiFakePath;
 Object.defineProperty(window, 'IS_MAZE', { get: () => isMaze() }); // 콘솔에서 IS_MAZE 입력 시 true/false
+// 이미 있는 전역 노출 라인들 아래에 이어서 붙이세요.
+window.isMaze = isMaze;
+window.applyMbtifakePath = applyMbtifakePath;
+
+// 강제 차단 핸들러 (인라인 onclick이 이걸 부름)
+window.__onShareClick = function (e) {
+  try {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (e && typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+  } catch (_) {}
+
+  try { setShare(e); } catch (_) {}
+  return false; // ★ 이게 네비게이션 완전 차단
+};
+
