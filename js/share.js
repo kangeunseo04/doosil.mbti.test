@@ -93,35 +93,23 @@ function syncSharedMarkerWithURL() {
   const onShared = /\/shared\/\d+/.test(location.pathname);
   ensureSharedMarker(onShared);
 }
-// js/share.js
-
-// (선택) 도메인 메모: https://www.interiormbti.site/
+// js/share.js  (tail clean block)
 let _shareObserver = null;
 
-/**
- * 공유 버튼 클릭 핸들러
- * - UT 클릭 로그
- * - Maze용 가짜 페이지 이동 (pushState)
- * - 짧은 지연 후 원래 URL로 복귀 (replaceState)
- * - 버튼 피드백 UI
- */
-/**
- * #result 영역에 있는 공유 버튼에 '한 번만' 리스너 바인딩
- */
-// ✅ #result 영역의 공유 버튼에 '한 번만' 리스너 바인딩
+/** #result 영역의 공유 버튼에 '한 번만' 리스너 바인딩 */
 function bindShareButton() {
   const shareBtn = document.querySelector('#result #shareButton, #shareButton');
   if (!shareBtn || shareBtn.dataset.bound) return;
 
-  // preventDefault 쓸 거라 passive:false
+  // preventDefault 사용할 거라 passive:false
   shareBtn.addEventListener('click', setShare, { passive: false });
   shareBtn.dataset.bound = '1';
 
-  // Maze 모드에서만 클릭 이벤트 표식 남기기
+  // Maze 모드에서는 클릭 이벤트 표식 남기기
   if (isMaze()) shareBtn.addEventListener('click', () => markEvent('share'));
 }
 
-// ✅ 태그/스토리카드 클릭 카운트 (외부 이동 X, Maze일 때만)
+/** 태그/스토리카드 클릭 카운트 (외부 이동 방지: Maze일 때만) */
 document.addEventListener('click', (e) => {
   const el = e.target.closest(
     '#result .tag-list button, ' +
@@ -132,166 +120,112 @@ document.addEventListener('click', (e) => {
   );
   if (!el) return;
 
-  const qa = el.getAttribute('data-qa') || '';
-
-  // Maze 모드에선 실제 네비게이션 막고, 가짜 URL로 이벤트만 남김
+  // Maze 모드에서는 네비게이션 막고, 가짜 URL 이벤트만 남김
   if (isMaze()) {
     e.preventDefault();
-    markEvent(qa || (el.closest('.story-card') ? 'story' : 'tag'));
-  }
-
-  // 필요 시 data-qa 자동 부여 (01~)
-  if (!el.getAttribute('data-qa')) {
-    const i = [...(el.parentElement?.querySelectorAll('[data-qa]') || [])].length + 1;
-    el.setAttribute('data-qa', `tag-${String(i).padStart(2, '0')}`);
-  }
-
-  // 1회성 기록용 보조 리스너(네비 막지 않는 일반 클릭 처리)
-  el.addEventListener('click', (ev) => {
-    if (isMaze()) { ev.preventDefault(); ev.stopPropagation(); }
-    const name = el.getAttribute('data-qa') || 'card';
+    const name = el.getAttribute('data-qa') ||
+      (el.closest('.story-card') ? 'story' : 'tag');
     markEvent(`${name}-${currentMbtiSafe()}`);
-  }, { passive: false, once: true });
-});
+  }
 
-  const btn = document.createElement('button');
-  btn.id = 'shareButton';
-  btn.type = 'button';
-  btn.textContent = '친구에게 공유하기(테스트)';
-  btn.style.cssText = [
-    'position:fixed','right:16px','bottom:80px','z-index:9999',
-    'padding:12px 16px','border-radius:12px','border:none',
-    'background:#111','color:#fff','font-weight:700','box-shadow:0 6px 18px rgba(0,0,0,.18)',
-  ].join(';');
+  // data-qa 자동 부여 (01~)
+  if (!el.getAttribute('data-qa')) {
+    const siblings = el.parentElement ? [...el.parentElement.children] : [];
+    const idx = String((siblings.filter(s => s.hasAttribute?.('data-qa')).length) + 1).padStart(2,'0');
+    el.setAttribute('data-qa', `tag-${idx}`);
+  }
+}, { passive: false });
 
-  document.body.appendChild(btn);
-  // 기존 바인딩 로직 호출
+/** 해시/가시성/히스토리 변화에 따른 보조 동기화 */
+window.addEventListener('hashchange', () => {
   bindShareButton();
-  // 혹시 모를 상태 동기화
   syncSharedMarkerWithURL();
 });
-// (선택) 스토리카드/공유 버튼에 data-qa 자동 라벨
-document.addEventListener('DOMContentLoaded', () => {
-  // 공유 버튼 라벨(중복 방지)
-  const shareBtn = document.getElementById('shareButton');
-  if (shareBtn && !shareBtn.dataset.qa) shareBtn.setAttribute('data-qa', 'btn-share');
+window.addEventListener('popstate', () => {
+  bindShareButton();
+  syncSharedMarkerWithURL();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    bindShareButton();
+    syncSharedMarkerWithURL();
+  }
+});
 
-  // 태그/스토리카드 클릭 타겟 라벨링 (button, a, role="button" 모두)
- const targets = document.querySelectorAll(
-  '#result .tag-list button, ' +
-  '#result .tag-list [role="button"], ' +
-  **'#result .tag-list a[href],' +
-  '#result .story-card button, ' +
-  '#result .story-card a[href], ' +
-  '#result .story-card [role="button"]'
-);
-document.addEventListener('DOMContentLoaded', () => {
-  // 추천 CTA (스토리카드 보러가기 등)
+/** 추천 CTA(스토리카드 브릿지 등) 내부 링크 강제 */
+function fixCTA() {
   const cta = document.querySelector('#recommend a, #recommend button, #go-story');
   if (!cta) return;
-
-  // Maze 모드에서는 외부로 빠지는 링크를 해시 기반 내부 링크로 강제 변경
-  if (IS_MAZE) {
-    cta.setAttribute('href', '#result');  // ← 여기 핵심!
-  } else if (cta.tagName === 'A') {
-    cta.setAttribute('href', `${location.pathname}#result`);
-  }
-
-  if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
-});
-
-  let i = 1;
-  targets.forEach(el => {
-    if (!el.getAttribute('data-qa')) {
-      const n = String(i).padStart(2, '0');   // 01~36
-    el.setAttribute('data-qa', `tag-${n}`);
-      i++;
-    }
-  });
-});
-// 추천 CTA href/data-qa 강제 고정 + 변경 감시
-document.addEventListener('DOMContentLoaded', () => {
-  const fixCTA = () => {
-    const cta = document.querySelector('#recommend a, #recommend button, #go-story');
-    if (!cta) return;
-
-    // 결과 섹션으로만 이동하게 강제(절대링크/외부링크 무력화)
-    if (cta.tagName === 'A') cta.setAttribute('href', `${location.pathname}#result`);
+  if (isMaze()) {
+    if (cta.tagName === 'A') cta.setAttribute('href', '#result');
+    else cta.setAttribute('href', `${location.pathname}#result`);
     if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
-  };
-
-  // 최초 1회 고정
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  bindShareButton();
+  syncSharedMarkerWithURL();
   fixCTA();
 
-  // 이후 DOM 변경으로 href가 덮이면 즉시 재고정
+  // CTA href가 동적으로 바뀌는 경우 즉시 재고정
   const mo = new MutationObserver(() => fixCTA());
   mo.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['href'] });
+
+  // 동적 생성되는 공유 버튼 감시
+  _shareObserver = new MutationObserver(() => bindShareButton());
+  _shareObserver.observe(document.body, { childList: true, subtree: true });
 });
 
-// 📌 0) 공통 유틸: 가짜 URL 표식 (무료 플랜용)
+/** 공통 유틸: 가짜 URL 표시 (무료 플랜용 이벤트 표식) */
 function markEvent(name, stayMs = 1500) {
   try {
     const back = location.href;
     const ts = Date.now();
-    // 경로에서 특수문자 제거(슬래시, 영숫자, -, _만 허용)
-   // (A) 슬래시만 제거
-const cleanPath = location.pathname.replace(/[^\w-]/g, ''); // 영문/숫자/밑줄/하이픈만 남김
+    const cleanPath = location.pathname.replace(/[^\w-]/g, ''); // 영문/숫자/밑줄/하이픈만 남김
     history.pushState({ maze: 'event' }, '', `${cleanPath}/ev-${name}-${ts}`);
     setTimeout(() => history.replaceState({}, '', back), stayMs);
   } catch (_) {}
 }
 
-// MBTI 추출 (이미 있는 detectMBTI() 재사용)
-function currentMbtiSafe() {
-  try { return (detectMBTI() || '').toUpperCase(); } catch { return ''; }
-}
-
-// Maze 모드 여부
-function isMaze() {
-  return /[?&]maze=1\b/i.test(location.search);
-}
-
-// 공유 버튼 핸들러 내부(setShare) 가장 처음: 클릭 열기
-try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_e) {}
-
+/** 공유 핸들러 */
 async function setShare(e) {
   if (e && e.preventDefault) e.preventDefault();
-  try { sessionStorage.setItem('shareClicked', '1'); } catch (_e) {}
+  try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
 
   const ts = Date.now();
   const fakePath = `${BASE}shared/${ts}`;
 
   try {
-    // 1) 경로를 임시로 /shared/<ts> 로 바꿔서 Maze가 클릭을 감지하게
+    // 1) 임시로 /shared/<ts> 로 바꿔서 Maze가 클릭을 감지하게
     window.history.pushState({ maze: 'share' }, '', fakePath);
     ensureSharedMarker(true); // 배너 ON
 
-    // 2) (선택) 공유 UI 열기 시점 로깅
-    try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_e) {}
+    // 2) (선택) 공유 UI 열기 시도 로깅
+    try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_) {}
 
-    // 3) 네이티브 공유 시도 로깅
+    // 3) 네이티브 공유 시도
     if (navigator.share) {
-      navigator.share({ title: document.title, url: location.href })
+      await navigator.share({ title: document.title, url: location.href })
         .then(() => markEvent(`share-native-${currentMbtiSafe()}`))
-        .catch(() => {/* 취소는 로깅 안 함 */});
+        .catch(() => {});
     }
 
-    // 4) 복사 성공 로깅 (클립보드 권한 허용 시)
+    // 4) (대비책) 링크 복사
     try {
       await navigator.clipboard.writeText(location.href);
       markEvent(`share-copy-${currentMbtiSafe()}`);
-    } catch {}
+    } catch (_) {}
 
-    // 5) Maze가 화면 스냅샷/체크할 시간을 조금 준 뒤 원래 해시로 복귀
-  const delay = IS_MAZE ? 1200 : 300;
-setTimeout(() => {
-  const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result 또는 /#result
-  window.history.replaceState({ maze: 'result' }, '', backUrl);
-  ensureSharedMarker(false);    // 배너 OFF
-  syncSharedMarkerWithURL();    // 상태 재확인
-}, delay);
-
-
+    // 5) Maze가 화면/센서/체류시간 조금 잡은 뒤 원래 해시로 복귀
+    const delay = isMaze() ? 1200 : 300;
+    setTimeout(() => {
+      const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result 또는 /#result
+      window.history.replaceState({ maze: 'result' }, '', backUrl);
+      ensureSharedMarker(false);       // 배너 OFF
+      syncSharedMarkerWithURL();       // 상태 재확인
+    }, delay);
+  } catch (_) {}
+  
   // (선택) 버튼 피드백 UI 유지
   const btn = document.getElementById('shareButton');
   if (btn) {
@@ -304,8 +238,8 @@ setTimeout(() => {
     }, 1200);
   }
 }
-// 디버그/테스트용 전역 노출
+
+/** 디버그/테스트용 전역 노출 (콘솔에서 확인할 수 있게) */
 window.isMaze = isMaze;
 window.applyMbtiFakePath = applyMbtiFakePath;
-Object.defineProperty(window, 'IS_MAZE', { get: () => isMaze() }); // 콘솔에서 IS_MAZE 조회용
-
+Object.defineProperty(window, 'IS_MAZE', { get: () => isMaze() }); // 콘솔에서 IS_MAZE 입력 시 true/false
