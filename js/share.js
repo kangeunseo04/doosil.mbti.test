@@ -116,34 +116,31 @@ function bindShareButton() {
     shareBtn.dataset.bound = '1';
     // console.log('[bind] share button bound');
   }
+  if (shareBtn && !shareBtn.dataset.bound) {
+  shareBtn.addEventListener('click', setShare, { passive: false });
+  shareBtn.dataset.bound = '1';
+  // ✅ Maze에서만 클릭 카운트 URL 남기기
+  if (IS_MAZE) shareBtn.addEventListener('click', () => markEvent('share'));
 }
-// [NEW] Maze 모드에서 #result 내부의 모든 클릭을 ‘현재 단계’에서 가로채어 이동을 차단
+}
+// ✅ 태그/스토리카드 클릭 카운트 (외부 이동 X, Maze일 때만)
 document.addEventListener('click', (e) => {
-  if (!IS_MAZE) return;
-
-  // 결과/추천 영역에서 발생한 클릭만 가로채기
-  const hit = e.target.closest(
-    '#result a, #result button,' +                 // 결과 영역 내 a, button
-    '#result .story-card a, #result .story-card button,' +
-    '#result .tag-list a, #result .tag-list button,' +
-    '#recommend a, #recommend button'              // 추천 CTA 영역(섹션 id 예시)
+  const el = e.target.closest(
+    '#result .tag-list button, ' +
+    '#result .tag-list [role="button"], ' +
+    '#result .story-card button, ' +
+    '#result .story-card a[href], ' +
+    '#result .story-card [role="button"]'
   );
-  if (!hit) return;
+  if (!el) return;
 
-  // Maze에서는 절대 외부/다른 페이지로 이동시키지 않음
-  // (절대링크, 상대링크 모두 차단)
-  e.preventDefault();
-  e.stopPropagation();
-
-  // data-qa 라벨 추출(없으면 카드로 통일)
-  const qa =
-    hit.getAttribute('data-qa') ||
-    (hit.closest('[data-qa]') ? hit.closest('[data-qa]').getAttribute('data-qa') : 'card');
-
-  try { markEvent(`card-${qa}-${currentMbtiSafe()}`); } catch {}
-
-}, { capture: true });  // ← 캡처 단계에서 가장 먼저 가로채도록 유지
-
+  const qa = el.getAttribute('data-qa') || '';
+  // Maze 모드에서만 실제 네비게이션을 막고, 가짜 URL로 이벤트만 남김
+  if (IS_MAZE) {
+    e.preventDefault();
+    markEvent(qa || (el.closest('.story-card') ? 'story' : 'tag'));
+  }
+}, true); // ← capture=true로 다른 핸들러보다 먼저 가로채기
 
   targets.forEach((el, i) => {
     if (!el.getAttribute('data-qa')) {
