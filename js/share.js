@@ -38,15 +38,10 @@ if (byAttr && /^[EI][NS][FT][PJ]$/i.test(byAttr)) {
 }
 // ✅ MBTI별 가짜 경로 적용: /result-ENFP#result 처럼 바꿔 Maze가 화면을 구분하게 함
 function applyMbtiFakePath() {
-  // Maze일 때, 결과 앵커일 때만 수행
-  if (!IS_MAZE) return;
+  if (!IS_MAZE) return; // ✅ Maze 아닐 땐 실행 안 함
   if (location.hash !== '#result') return;
-
   const mbti = detectMBTI();
-  if (!mbti) return;                     // MBTI 못찾으면 패스
-  if (isMBTIFakePathApplied()) return;   // 이미 적용돼 있으면 패스
-
-  // 주소 막 바꾸면 히스토리가 늘어나니 replaceState 사용
+  if (!mbti || isMBTIFakePathApplied()) return;
   history.replaceState({}, '', buildResultURL(mbti));
 }
 
@@ -201,6 +196,41 @@ document.addEventListener('DOMContentLoaded', () => {
   // 이미 버튼이 있으면 스킵
   if (document.getElementById('shareButton')) return; 
 
+  document.addEventListener('DOMContentLoaded', () => {
+  if (!isMaze()) return;
+  if (!location.hash || location.hash !== '#result') return;
+
+  const mbti = currentMbtiSafe();
+  // 3초 체류
+  setTimeout(() => markEvent(`view-3s-${mbti}`), 3000);
+  // 10초 체류
+  setTimeout(() => markEvent(`view-10s-${mbti}`), 10000);
+});
+
+  document.addEventListener('DOMContentLoaded', () => {
+  if (!isMaze()) return;
+
+  const mbti = currentMbtiSafe();
+  const targets = document.querySelectorAll(
+    '#result .story-card, #result .tag-list button, #result .tag-list [role="button"]'
+  );
+
+  targets.forEach((el, i) => {
+    if (!el.getAttribute('data-qa')) {
+      el.setAttribute('data-qa', `tag-${String(i + 1).padStart(2, '0')}`);
+    }
+el.addEventListener('click', (e) => {
+  if (IS_MAZE) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const name = el.getAttribute('data-qa') || 'card';
+  markEvent(`card-${name}-${currentMbtiSafe()}`);
+}, { passive: false });
+
+  });
+});
+
   const btn = document.createElement('button');
   btn.id = 'shareButton';
   btn.type = 'button';
@@ -238,6 +268,83 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+// 📌 0) 공통 유틸: 가짜 URL 표식 (무료 플랜용)
+function markEvent(name, stayMs = 1000) {
+  try {
+ // 274 줄 부근
+const back = location.href;
+const ts = Date.now();
+// 끝 슬래시만 제거(여러 개도 안전하게)
+const cleanPath = location.pathname.replace(/\/+$/, '') || '/';
 
+history.pushState({ maze: 'event' }, '', `${cleanPath}/ev-${name}-${ts}`);
+setTimeout(() => history.replaceState({}, '', back), stayMs);
+      
+}
 
+// MBTI 추출 (이미 있는 detectMBTI() 재사용)
+function currentMbtiSafe() {
+  try { return (detectMBTI() || '').toUpperCase(); } catch { return ''; }
+}
 
+// Maze 모드 여부
+function isMaze() {
+  return /[?&]maze=1\b/i.test(location.search);
+}
+
+// 공유 버튼 핸들러 내부(setShare) 가장 처음: 클릭 열기
+try { markEvent(`share-open-${currentMbtiSafe()}`); } catch {}
+
+async function setShare(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  try { sessionStorage.setItem('shareClicked', '1'); } catch {}
+
+  const ts = Date.now();
+  const fakePath = `${BASE}shared/${ts}`;
+
+  try {
+    // 1) 경로를 임시로 /shared/<ts> 로 바꿔서 Maze가 클릭을 감지하게
+    window.history.pushState({ maze: 'share' }, '', fakePath);
+    ensureSharedMarker(true); // 배너 ON
+
+    // 2) (선택) 공유 UI 열기 시점 로깅
+    try { markEvent(`share-open-${currentMbtiSafe()}`); } catch {}
+
+    // 3) 네이티브 공유 시도 로깅
+    if (navigator.share) {
+      navigator.share({ title: document.title, url: location.href })
+        .then(() => markEvent(`share-native-${currentMbtiSafe()}`))
+        .catch(() => {/* 취소는 로깅 안 함 */});
+    }
+
+    // 4) 복사 성공 로깅 (클립보드 권한 허용 시)
+    try {
+      await navigator.clipboard.writeText(location.href);
+      markEvent(`share-copy-${currentMbtiSafe()}`);
+    } catch {}
+
+    // 5) Maze가 화면 스냅샷/체크할 시간을 조금 준 뒤 원래 해시로 복귀
+    const delay = IS_MAZE ? 1200 : 300;
+    setTimeout(() => {%
+      \
+      const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result 또는 /#result
+      window.history.replaceState({ maze: 'result' }, '', backUrl);
+      ensureSharedMarker(false);    // 배너 OFF
+      syncSharedMarkerWithURL();    // 상태 재확인
+    }, delay);
+  } catch (err) {
+    console.error('[Maze] navigation failed:', err);
+  }
+
+  // (선택) 버튼 피드백 UI 유지
+  const btn = document.getElementById('shareButton');
+  if (btn) {
+    const prev = btn.textContent;
+    btn.textContent = '공유 완료!';
+    btn.setAttribute('aria-pressed', 'true');
+    setTimeout(() => {
+      btn.textContent = prev;
+      btn.removeAttribute('aria-pressed');
+    }, 1200);
+  }
+}
