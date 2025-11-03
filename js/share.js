@@ -116,38 +116,44 @@ function bindShareButton() {
   if (isMaze()) shareBtn.addEventListener('click', () => markEvent('share'));
 }
 
-document.addEventListener('click', (e) => {
-  // 공유 버튼이면 여기서는 아무 것도 하지 않고 바로 종료
-  if (e.target.closest('#shareButton')) return;
-    // ... (태그/스토리 카드 처리 기존 코드)
+// 🔧 여기부터 한 덩어리로 교체
+document.addEventListener(
+  'click',
+  (e) => {
+    // 공유 버튼이면 여기서는 아무 것도 하지 않고 바로 종료
+    if (e.target.closest('#shareButton')) return;
 
-  // (아래는 기존 태그/스토리카드 처리 로직)
-  const el = e.target.closest(
-    '#result .tag-list button, ' +
-    '#result .tag-list [role="button"], ' +
-    '#result .story-card button, ' +
-    '#result .story-card a[href], ' +
-    '#result .story-card [role="button"]'
-  );
-  if (!el) return;
+    // (아래는 기존 태그/스토리카드 처리 로직)
+    const el = e.target.closest(
+      '#result .tag-list button, ' +
+      '#result .tag-list [role="button"], ' +
+      '#result .story-card button, ' +
+      '#result .story-card a[href], ' +
+      '#result .story-card [role="button"]'
+    );
+    if (!el) return;
 
-  if (isMaze()) {
-    e.preventDefault();
-    const name = el.getAttribute('data-qa') ||
-                (el.closest('.story-card') ? 'story' : 'tag');
-    markEvent(`${name}-${currentMbtiSafe()}`);
-  }
-}, { capture: true }); // ← 이것도 캡처 단계 권장
+    // Maze 모드에서만 가짜 URL 이벤트 남김
+    if (isMaze()) {
+      e.preventDefault();
+      const name =
+        el.getAttribute('data-qa') ||
+        (el.closest('.story-card') ? 'story' : 'tag');
+      // ⬇️ 네 함수명이 currentMbtiSafe 인지 확인!
+      markEvent(`${name}-${currentMbtiSafe()}`);
+    }
 
-  // data-qa 자동 부여 (01~)
-  if (!el.getAttribute('data-qa')) {
-    const siblings = el.parentElement ? [...el.parentElement.children] : [];
-    const idx = String(
-      (siblings.filter(s => s.hasAttribute && s.hasAttribute('data-qa')).length + 1
-    ).padStart(2, '0');
-    el.setAttribute('data-qa', `tag-${idx}`);
-  }
-}, { passive: false });
+    // data-qa 자동 부여 (선택)
+    if (!el.getAttribute('data-qa')) {
+      const siblings = el.parentElement ? [...el.parentElement.children] : [];
+      const idx = String(
+        siblings.filter((s) => s.hasAttribute?.('data-qa')).length + 1
+      ).padStart(2, '0');
+      el.setAttribute('data-qa', `tag-${idx}`);
+    }
+  },
+  { capture: true, passive: false }
+);
 
 /** 해시/가시성/히스토리 변화에 따른 보조 동기화 */
 window.addEventListener('hashchange', () => {
