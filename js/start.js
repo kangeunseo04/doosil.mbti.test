@@ -237,9 +237,11 @@ document.addEventListener('keydown', e => {
     e.stopImmediatePropagation();
 
     const tag = link.textContent.trim();
-    if (window.Maze && typeof Maze.customEvent === 'function') {
+   if (window.Maze && typeof Maze.customEvent === 'function') {
       Maze.customEvent('storycard_click', { tag });
     } else {
       console.log('✅ 스토리카드 키보드 활성화:', tag);
     }
-   }, { capture: true });
+  } // <-- 245줄: if문 닫힘
+
+}, { capture: true }); // <-- 246줄: 콜백 함수 닫는 '}' 추가, 쉼표(,) 뒤에 옵션 객체
