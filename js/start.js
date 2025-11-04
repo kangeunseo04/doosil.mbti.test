@@ -70,44 +70,6 @@ let __qnaRetry  = 0;
   }
 }
 
-    // 결과영역 내 링크: 클릭/키보드(Enter/Space) → 네비게이션 차단 + Maze 이벤트(옵션)
-    const sendEvent = (a) => {
-      const tag = (a.textContent || '').trim();
-      if (window.Maze && typeof Maze.customEvent === 'function') {
-        Maze.customEvent('storycard_click', { tag });
-      } else {
-        console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
-      }
-    };
-
-    resultDesc.addEventListener(
-      'click',
-      (e) => {
-        const a = e.target.closest('.resultDesc a');
-        if (!a) return;
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        sendEvent(a);
-      },
-      { capture: true }
-    );
-
-    resultDesc.addEventListener(
-      'keydown',
-      (e) => {
-        const a = e.target.closest('.resultDesc a');
-        if (!a) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          sendEvent(a);
-        }
-      },
-      { capture: true }
-    );
-  }
-}
-
 // 결과 화면으로 전환
 function goResult() {
   qna.style.webkitAnimation = 'fadeOut 1s';
