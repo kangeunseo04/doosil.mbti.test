@@ -27,7 +27,7 @@ if (el && typeof el.getAttribute === 'function') {
 if (byAttr && /^[EI][NS][FT][JP]$/i.test(byAttr)) {
   return byAttr.toUpperCase();
 }
-function currentMbitSafe() {
+function currentMbtiSafe() {
   const mbti = (detectMBTI() || '').toUpperCase();
   return /^[EI][NS][FT][JP]$/.test(mbti) ? mbti : 'XXXX';
 }
@@ -144,7 +144,7 @@ document.addEventListener(
       el.getAttribute('data-qa') ||
       (el.closest('.story-card') ? 'story' : 'tag');
 
-    markEvent(`s-${name}-${currentMbitSafe()}`);
+    markEvent(`s-${name}-${currentMbtiSafe()}`);
 
     // data-qa 없으면 자동 부여 (선택)
     if (!el.getAttribute('data-qa')) {
