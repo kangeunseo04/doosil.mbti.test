@@ -23,6 +23,7 @@ function calResult() {
   return idx >= 0 ? idx : 0;
 }
 let __infoRetry = 0;
+let __qnaRetry = 0;
 
 function setResult() {
   const point = calResult();
@@ -145,10 +146,18 @@ function addAnswer(answerText, qIdx, idx) {
       goNext(++qIdx);
     }, 450);
   }, false);
-}
-
 // 다음 질문 세팅
 function goNext(qIdx) {
+ if (typeof qnaList === 'undefined' || !Array.isArray(qnaList) || !qnaList[qIdx]) {
+    if (__qnaRetry++ < 60) { // 3초간 재시도
+      return setTimeout(() => goNext(qIdx), 50);
+    } else {
+      console.error('qnaList 미로딩 또는 인덱스 오류. qIdx=', qIdx);
+      return; // 실패
+    }
+  }
+  // ▲▲▲ 여기까지 추가 ▲▲▲
+
   if (qIdx === endPoint) {
     goResult();
     return;
