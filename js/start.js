@@ -1,7 +1,15 @@
 // =========================
 //  start.js (clean version)
 // =========================
-
+// start.js 최상단 어딘가(선언부 위)
+const BASE = (() => {
+  const { hostname, pathname } = location;
+  if (hostname.endsWith('github.io')) {
+    const segs = pathname.split('/').filter(Boolean);
+    return segs.length ? `/${segs[0]}/` : '/';
+  }
+  return '/';
+})();
 // 기본 엘리먼트
 const main   = document.querySelector('#main');
 const qna    = document.querySelector('#qna');
@@ -25,38 +33,42 @@ let __infoRetry = 0;
 let __qnaRetry  = 0;
 
 function setResult() {
-  const point = calResult();
+  // 1) 결과 index
+  let point = calResult();
 
-  // infoList 준비 확인 (대소문자 모두 대응)
+  // 2) infoList 존재/대기 (이미 있으니 유지)
   const list = (window.infoList || window.infolist);
-  if (!Array.isArray(list) || !list[point]) {
-    if (__infoRetry++ < 60) {
-      return setTimeout(setResult, 50);
-    } else {
-      console.error('infoList 미로드 또는 인덱스 오류. point=', point, {
-        listType: typeof list,
-        listLen: Array.isArray(list) ? list.length : 'N/A'
-      });
-      return;
-    }
+  if (!Array.isArray(list) || !list.length) {
+    if (__infoRetry++ < 60) return setTimeout(setResult, 50);
+    console.error('infoList 미로드 또는 인덱스 오류. point=', point, {
+      listType: typeof list, listLen: Array.isArray(list) ? list.length : 'N/A'
+    });
+    return;
   }
 
-  // 1) 타이틀
-  const resultNameEl =
-    document.querySelector('.resultname') ||
-    document.querySelector('#resultName');
-  if (resultNameEl) resultNameEl.textContent = list[point].name || '';
+  // 3) point를 안전 범위로 보정 ← ★중요
+  if (point < 0 || point >= list.length) point = 0;
 
-  // 2) 결과 이미지
+  // ... (타이틀 렌더는 그대로)
+
+  // 4) 이미지 경로에 BASE 적용 ← ★중요
   const imgDiv = document.querySelector('#resultImg');
   if (imgDiv) {
     imgDiv.innerHTML = '';
     const img = document.createElement('img');
-    img.src = `img/image-${point}.png`;
+    img.src = `${BASE}img/image-${point}.png`;   // ← 상대경로 404 방지
     img.alt = list[point].name || String(point);
     img.classList.add('img-fluid');
     imgDiv.appendChild(img);
+
+    // (선택) 로드 실패시 디버깅 로그
+    img.addEventListener('error', () => {
+      console.warn('이미지 로드 실패:', img.src);
+    });
   }
+
+  // ... (resultDesc 처리 기존대로)
+}
 
   // 3) 설명 + 내부 링크 제어
   const resultDesc = document.querySelector('.resultDesc');
