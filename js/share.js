@@ -102,7 +102,6 @@ function syncSharedMarkerWithURL() {
 // js/share.js  (tail clean block)
 let _shareObserver = null;
 
-/** #result 영역의 공유 버튼에 '한 번만' 리스너 바인딩 */
 function bindShareButton() {
   const shareBtn = document.querySelector('#result #shareButton, #shareButton');
   if (!shareBtn || shareBtn.dataset.bound) return;
@@ -110,10 +109,10 @@ function bindShareButton() {
   // 캡처 단계에서 가장 먼저 잡는다
   shareBtn.addEventListener('click', setShare, { passive: false, capture: true });
   shareBtn.dataset.bound = '1';
-}
 
-  // Maze 모드에서는 클릭 이벤트 표식 남기기
+  // ✅ Maze 표식은 "여기"에서 shareBtn가 있을 때만 등록
   if (isMaze()) shareBtn.addEventListener('click', () => markEvent('share'));
+}
 
 // 🔧 여기부터 한 덩어리로 교체
 document.addEventListener(
