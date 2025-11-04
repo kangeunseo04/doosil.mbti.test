@@ -1,7 +1,5 @@
-// js/share.js
-
-// BASE 경로
-const BASE = (() => {
+// BASE 경로 (싱글턴)
+window.__BASE = window.__BASE || (function () {
   const { hostname, pathname } = location;
   if (hostname.endsWith('github.io')) {
     const segs = pathname.split('/').filter(Boolean);
@@ -9,6 +7,7 @@ const BASE = (() => {
   }
   return '/';
 })();
+const BASE = window.__BASE;
 
 function isMaze() {
   try { return /[?&]maze=(1|true)\b/i.test(location.search); }
