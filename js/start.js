@@ -37,8 +37,8 @@ function setResult() {
     }
   }
 
-  const resultName = document.querySelector('.resultname');
-  resultName.innerHTML = infoList[point].name;
+  const resultName = document.querySelector('#resultName');
+resultName.innerHTML = infoList[point].name;
 
   const imgDiv = document.querySelector('#resultImg');
   imgDiv.innerHTML = '';
