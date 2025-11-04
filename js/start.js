@@ -13,10 +13,12 @@ function calResult(){
 
 function setResult(){
   let point = calResult();
+
   const resultName = document.querySelector('.resultname');
   resultName.innerHTML = infoList[point].name;
 
   const imgDiv = document.querySelector('#resultImg');
+  imgDiv.innerHTML = ''; // (선택) 중복 이미지 방지
   const resultImg = document.createElement('img');
   const imgURL = 'img/image-' + point + '.png';
   resultImg.src = imgURL;
@@ -26,18 +28,6 @@ function setResult(){
 
   const resultDesc = document.querySelector('.resultDesc');
   resultDesc.innerHTML = infoList[point].desc; // ✅ 여기까지만 (이벤트 X)
-}
-
-  var resultImg = document.createElement('img');
-  const imgDiv = document.querySelector('#resultImg');
-  var imgURL = 'img/image-' + point + '.png';
-  resultImg.src = imgURL;
-  resultImg.alt = point;
-  resultImg.classList.add('img-fluid');
-  imgDiv.appendChild(resultImg);
-
-  const resultDesc = document.querySelector('.resultDesc');
-  resultDesc.innerHTML = infoList[point].desc;
 }
 
 function goResult(){
@@ -120,12 +110,22 @@ function begin(){
 // ✅ 전역 등록 (onclick으로도 접근 가능하게)
 window.begin = begin;
 
+// ✅ 결과 설명(.resultDesc) 영역의 앵커 클릭을 '추적만' 하도록 전역 가로채기
 document.addEventListener('click', function (e) {
   const link = e.target.closest('.resultDesc a');
-  if (!link) return;
+  if (!link) return;                     // 링크가 아니면 아무 것도 하지 않음 (다른 버튼 정상 동작)
 
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  console.log('스토리카드 클릭:', link.textContent.trim());
+  e.preventDefault();                    // 새창/이동 막기
+  e.stopImmediatePropagation();          // (필요시) 상위 전파 차단
+
+  // 🔹 Maze 커스텀 이벤트 (로딩 안 된 경우 콘솔로 폴백)
+  const tag = link.textContent.trim();
+  if (window.Maze && typeof Maze.customEvent === 'function') {
+    Maze.customEvent('storycard_click', { tag });
+    console.log('🎯 Maze 이벤트 전송:', tag);
+  } else {
+    console.log('⚠️ Maze 미탑재 → 클릭만 로깅:', tag);
+  }
 }, { capture: true });
+
 
