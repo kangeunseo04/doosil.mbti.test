@@ -28,7 +28,7 @@ function setResult() {
   const point = calResult();
 
   // data.js 로드 지연이면 잠깐 기다렸다 재시도 (최대 60회 ≒ 3초)
-   if (!window.infolist || !Array.isArray(infoList) || !infoList[point]) {
+ if (typeof infolist === 'undefined' || !Array.isArray(infolist) || !infolist[point]) {
     if (__infoRetry++ < 60) {
       return setTimeout(setResult, 50);
     } else {
