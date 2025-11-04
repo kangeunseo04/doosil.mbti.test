@@ -27,6 +27,10 @@ if (el && typeof el.getAttribute === 'function') {
 if (byAttr && /^[EI][NS][FT][JP]$/i.test(byAttr)) {
   return byAttr.toUpperCase();
 }
+function currentMbitSafe() {
+  const mbti = (detectMBTI() || '').toUpperCase();
+  return /^[EI][NS][FT][JP]$/.test(mbti) ? mbti : 'XXXX';
+}
 
   // 2) 화면 텍스트에서 추출 (예: <span class="mbti-type">ENFP</span>)
   const txtEl = document.querySelector('#result .mbti-type, .mbti-type');
@@ -111,7 +115,7 @@ function bindShareButton() {
   shareBtn.dataset.bound = '1';
 
   // ✅ Maze 표식은 "여기"에서 shareBtn가 있을 때만 등록
-  if (isMaze()) shareBtn.addEventListener('click', () => markEvent('share'));
+ if (isMaze()) shareBtn.addEventListener('click', setShare);
 }
 
 // 🔧 여기부터 한 덩어리로 교체
@@ -120,7 +124,7 @@ document.addEventListener(
   (e) => {
     // 공유 버튼이면 여기서는 아무 것도 하지 않고 바로 종료
     if (e.target.closest('#shareButton')) return;
-
+    }, { capture: true, passive: false });
     // (아래는 기존 태그/스토리카드 처리 로직)
     const el = e.target.closest(
       '#result .tag-list button, ' +
@@ -130,12 +134,9 @@ document.addEventListener(
       '#result .story-card [role="button"]'
     );
     if (!el) return;
-
-   // ... (if (!el) return; 다음)
-
-// Maze 모드에서만 가짜 URL 이벤트 남김 (<- 이 로직을 항상 실행하도록 조건문 제거)
-// if (isMaze()) { // <-- 이 줄을 삭제 (또는 //로 주석 처리)
-  e.preventDefault();
++ e.preventDefault();
++ e.stopPropagation();
++ e.stopImmediatePropagation();
   const name =
     el.getAttribute('data-qa') ||
     (el.closest('.story-card') ? 'story' : 'tag');
@@ -171,17 +172,24 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-/** 추천 CTA(스토리카드 브릿지 등) 내부 링크 강제 */
 function fixCTA() {
-// OK: recommend/스토리 CTA만
-const cta = document.querySelector('#recommend a, #recommend button, #go-story');
+  const cta = document.querySelector('#recommend a, #recommend button, #go-story');
   if (!cta) return;
   if (isMaze()) {
-    if (cta.tagName === 'A') cta.setAttribute('href', '#result');
-    else cta.setAttribute('href', `${location.pathname}#result`);
-    if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
+  if (cta.tagName === 'A') {
+    cta.setAttribute('href', 'javascript:void(0)');
+    cta.setAttribute('role', 'button');
+    cta.setAttribute('tabindex', '0');
+  } else {
+    cta.setAttribute('data-qa', 'go-story');
   }
 }
+
++ // Maze 여부와 관계없이 네비게이션 완전 차단
++ if (cta.tagName === 'A') cta.setAttribute('href', 'javascript:void(0)');
++ if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   bindShareButton();
   syncSharedMarkerWithURL();
@@ -236,8 +244,9 @@ async function setShare(e) {
       btn.removeAttribute('aria-pressed');
     }, 1200);
   }
-
-  return false; // 기본 동작 차단
+if (e && typeof e.preventDefault === 'function') e.preventDefault();
+if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+return false; // 네비게이션 완전 차단
 }
 
 /** 디버그/테스트용 전역 노출 (콘솔에서 확인할 수 있게) */
@@ -247,14 +256,8 @@ Object.defineProperty(window, 'IS_MAZE', { get: () => isMaze() }); // 콘솔에�
 // 이미 있는 전역 노출 라인들 아래에 이어서 붙이세요.
 
 // 강제 차단 핸들러 (인라인 onclick이 이걸 부름)
-window.__onShareClick = function (e) {
-  try {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-    if (e && typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
-  } catch (_) {}
-
-  try { setShare(e); } catch (_) {}
-  return false; // ★ 이게 네비게이션 완전 차단
+window._onShareClick = (e) => {
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+  return setShare(e);
 };
-
