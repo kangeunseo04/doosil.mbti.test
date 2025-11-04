@@ -27,6 +27,7 @@ if (el && typeof el.getAttribute === 'function') {
 if (byAttr && /^[EI][NS][FT][JP]$/i.test(byAttr)) {
   return byAttr.toUpperCase();
 }
+
 function currentMbtiSafe() {
   const mbti = (detectMBTI() || '').toUpperCase();
   return /^[EI][NS][FT][JP]$/.test(mbti) ? mbti : 'XXXX';
@@ -178,19 +179,21 @@ document.addEventListener('visibilitychange', () => {
 function fixCTA() {
   const cta = document.querySelector('#recommend a, #recommend button, #go-story');
   if (!cta) return;
-  if (isMaze()) {
-  if (cta.tagName === 'A') {
-    cta.setAttribute('href', 'javascript:void(0)');
-    cta.setAttribute('role', 'button');
-    cta.setAttribute('tabindex', '0');
-  } else {
-    cta.setAttribute('data-qa', 'go-story');
-  }
-}
 
-+ // Maze 여부와 관계없이 네비게이션 완전 차단
-+ if (cta.tagName === 'A') cta.setAttribute('href', 'javascript:void(0)');
-+ if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
+  // Maze 환경: a 태그 네비 막고, 버튼엔 표식 부여
+  if (isMaze()) {
+    if (cta.tagName === 'A') {
+      cta.setAttribute('href', 'javascript:void(0)');
+      cta.setAttribute('role', 'button');
+      cta.setAttribute('tabindex', '0');
+    } else {
+      cta.setAttribute('data-qa', 'go-story');
+    }
+  }
+
+  // Maze 여부와 관계없이 네비 완전 차단 + data-qa 기본값 보장
+  if (cta.tagName === 'A') cta.setAttribute('href', 'javascript:void(0)');
+  if (!cta.getAttribute('data-qa')) cta.setAttribute('data-qa', 'go-story');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
