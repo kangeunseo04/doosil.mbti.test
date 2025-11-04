@@ -99,16 +99,13 @@ function setResult() {
         sendEvent(a);
       }, { capture: true });
 
-      a.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          sendEvent(a);
-        }
-      }, { capture: true });
-    });
+a.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    sendEvent(a);
   }
-}
+}, { capture: true });
 
 // 결과 화면으로 전환
 function goResult() {
