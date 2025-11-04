@@ -74,14 +74,6 @@ if (imgDiv) {
   imgDiv.appendChild(img);
 }
 
-    // (선택) 로드 실패시 디버깅 로그
-    img.addEventListener('error', () => {
-      console.warn('이미지 로드 실패:', img.src);
-    });
-  }
-
-  // ... (resultDesc 처리 기존대로)
-}
 // 3) 설명 + 내부 링크 제어
 const resultDesc = document.querySelector('.resultDesc');
 if (resultDesc) {
