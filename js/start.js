@@ -56,15 +56,15 @@ resultDesc.innerHTML = infoList[point].desc;
 const links = resultDesc.querySelectorAll('a');
 
 // 접근성/속성 정리
-links.forEach(a => {
+links.forEach((a) => {
   a.removeAttribute('target');
-  a.removeAttribute('href');       // 네비게이션 자체 차단
-  a.setAttribute('role', 'button');
-  a.setAttribute('tabindex', '0');
+  a.removeAttribute('href');        // 네비게이션 자체 차단
+  a.setAttribute('role', 'button'); // 스크린리더용
+  a.setAttribute('tabindex', '0');  // 키보드 포커스 가능
 });
 
 // 이벤트 바인딩 (클릭 + 키보드)
-links.forEach(a => {
+links.forEach((a) => {
   const sendEvent = () => {
     const tag = (a.textContent || '').trim();
     if (window.Maze && typeof Maze.customEvent === 'function') {
@@ -74,11 +74,28 @@ links.forEach(a => {
     }
   };
 
-  a.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    sendEvent();
-  }, { capture: true });
+  a.addEventListener(
+    'click',
+    (e) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sendEvent();
+    },
+    { capture: true }
+  );
+
+  a.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        sendEvent();
+      }
+    },
+    { capture: true }
+  );
+}); // ← forEach는 여기서 '한 번만' 닫힘
 
   a.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
