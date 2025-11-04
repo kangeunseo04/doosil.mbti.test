@@ -16,6 +16,18 @@ function setResult(){
   const resultName = document.querySelector('.resultname');
   resultName.innerHTML = infoList[point].name;
 
+  const imgDiv = document.querySelector('#resultImg');
+  const resultImg = document.createElement('img');
+  const imgURL = 'img/image-' + point + '.png';
+  resultImg.src = imgURL;
+  resultImg.alt = point;
+  resultImg.classList.add('img-fluid');
+  imgDiv.appendChild(resultImg);
+
+  const resultDesc = document.querySelector('.resultDesc');
+  resultDesc.innerHTML = infoList[point].desc; // ✅ 여기까지만 (이벤트 X)
+}
+
   var resultImg = document.createElement('img');
   const imgDiv = document.querySelector('#resultImg');
   var imgURL = 'img/image-' + point + '.png';
@@ -108,11 +120,12 @@ function begin(){
 // ✅ 전역 등록 (onclick으로도 접근 가능하게)
 window.begin = begin;
 
-// ✅ “한 번만” 바인딩되도록 설정
-document.addEventListener("DOMContentLoaded", function () {
-  const btn = document.getElementById("startButton");
-  if (btn && !btn.dataset.bound) {
-    btn.addEventListener("click", begin);
-    btn.dataset.bound = "1";
-  }
-});
+document.addEventListener('click', function (e) {
+  const link = e.target.closest('.resultDesc a');
+  if (!link) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  console.log('스토리카드 클릭:', link.textContent.trim());
+}, { capture: true });
+
