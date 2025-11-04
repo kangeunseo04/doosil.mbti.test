@@ -36,14 +36,11 @@ function setResult() {
   // 1) 결과 index
   let point = calResult();
 
-  // 2) infoList 확인용 (디버그 로그)
+  // 2) infoList 확인
   const list = window.infoList || window.infolist;
-  console.log(
-    'infoList loaded?', Array.isArray(list), 'len',
-    Array.isArray(list) ? list.length : 'N/A'
-  );
+  console.log('infoList loaded?', Array.isArray(list), 'len', Array.isArray(list) ? list.length : 'N/A');
 
-  // 3) infoList 존재 안 하면 재시도
+  // 3) infoList 없으면 대기 (최대 3초 정도 대기)
   if (!Array.isArray(list) || !list.length) {
     if (__infoRetry++ < 60) return setTimeout(setResult, 50);
     console.error('infoList 미로드 또는 인덱스 오류. point=', point, {
@@ -53,42 +50,43 @@ function setResult() {
     return;
   }
 
-  // --- 나머지 기존 코드 계속 ---
-}
-
+  // 4) point 범위 보정 (여기에서 **_point**가 아니라 **point**를 사용해야 함)
   if (point < 0 || point >= list.length) point = 0;
 
-  // ... (타이틀 렌더는 그대로)
+  // 5) 타이틀
+  const resultNameEl =
+    document.querySelector('.resultname') ||
+    document.querySelector('#resultName');
+  if (resultNameEl) resultNameEl.textContent = list[point].name || '';
 
-// 2) 결과 이미지
-const imgDiv = document.querySelector('#resultImg');
-if (imgDiv) {
-  imgDiv.innerHTML = '';
-  const img = document.createElement('img');
-  img.src = `img/image-${point}.png`; // BASE 쓰면 BASE+경로로
-  img.alt = list[point].name || String(point);
-  img.classList.add('img-fluid');
-  img.addEventListener('error', () => {
-    console.warn('이미지 로드 실패:', img.src);
-  });
-  imgDiv.appendChild(img);
+  // 6) 결과 이미지
+  const imgDiv = document.querySelector('#resultImg');
+  if (imgDiv) {
+    imgDiv.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = `img/image-${point}.png`;
+    img.alt = list[point].name || String(point);
+    img.classList.add('img-fluid');
+    img.addEventListener('error', () => {
+      console.warn('이미지 로드 실패:', img.src);
+    });
+    imgDiv.appendChild(img);
+  }
+
+  // 7) 설명 + 내부 링크 제어 (기존 코드 유지)
+  const resultDesc = document.querySelector('.resultDesc');
+  if (resultDesc) {
+    resultDesc.innerHTML = list[point].desc || '';
+    const links = resultDesc.querySelectorAll('a');
+    links.forEach((a) => {
+      a.removeAttribute('target');
+      a.removeAttribute('href');
+      a.setAttribute('role', 'button');
+      a.setAttribute('tabindex', '0');
+    });
+  }
 }
 
-// 3) 설명 + 내부 링크 제어
-const resultDesc = document.querySelector('.resultDesc');
-if (resultDesc) {
-  resultDesc.innerHTML = list[point].desc || '';
-
-  const links = resultDesc.querySelectorAll('a');
-
-  const sendEvent = (a) => {
-    const tag = (a.textContent || '').trim();
-    if (window.Maze && typeof Maze.customEvent === 'function') {
-      Maze.customEvent('storycard_click', { tag });
-    } else {
-      console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
-    }
-  };
 
   links.forEach((a) => {
     a.removeAttribute('target');
