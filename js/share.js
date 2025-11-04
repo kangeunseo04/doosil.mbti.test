@@ -208,6 +208,7 @@ function markEvent(name, stayMs = 1500) {
   } catch (_) {}
 }
 
+// 클릭만 처리: 새창/공유/복사/URL 변경 없음
 async function setShare(e) {
   if (e && typeof e.preventDefault === 'function') e.preventDefault();
   if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
@@ -215,53 +216,29 @@ async function setShare(e) {
 
   try { sessionStorage.setItem('shareClicked', '1'); } catch (_) {}
 
-  const ts = Date.now();
-  const fakePath = `${BASE}shared/${ts}`;
+  const title = document.querySelector('.resultname')?.textContent.trim() || '';
 
-  // Maze일 때만 가짜 URL 노출
-  if (isMaze()) {
-    window.history.pushState({ maze: 'share' }, '', fakePath);
-    ensureSharedMarker(true);
+  // (옵션) Maze 이벤트
+  if (window.Maze && typeof Maze.customEvent === 'function') {
+    try { Maze.customEvent('share_click', { tag: title }); } catch (_) {}
+    console.log('🎯 Maze 이벤트 전송:', title);
+  } else {
+    console.log('✅ 공유 버튼 클릭(로컬 로그):', title);
   }
 
-  try { markEvent(`share-open-${currentMbtiSafe()}`); } catch (_) {}
-
-  // 네이티브 공유 (가능한 경우)
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: document.title, url: location.href });
-      markEvent(`share-native-${currentMbtiSafe()}`);
-    } catch { /* 취소해도 무시 */ }
-  }
-
-  // 복사 fallback
-  try {
-    await navigator.clipboard.writeText(location.href);
-    markEvent(`share-copy-${currentMbtiSafe()}`);
-  } catch {}
-
-  // 원래 URL로 복귀 (Maze일 때만)
-  if (isMaze()) {
-    const delay = 1200;
-    setTimeout(() => {
-      const backUrl = buildResultURL(detectMBTI()); // /result-ENFP#result or /#result
-      window.history.replaceState({ maze: 'result' }, '', backUrl);
-      ensureSharedMarker(false);
-      syncSharedMarkerWithURL();
-    }, delay);
-  }
-
-  // 버튼 피드백 (그대로 유지)
+  // (옵션) 버튼 피드백
   const btn = document.getElementById('shareButton');
   if (btn) {
     const prev = btn.textContent;
-    btn.textContent = '공유 완료!';
+    btn.textContent = '클릭 완료!';
     btn.setAttribute('aria-pressed', 'true');
     setTimeout(() => {
       btn.textContent = prev;
       btn.removeAttribute('aria-pressed');
     }, 1200);
   }
+
+  return false; // 기본 동작 차단
 }
 
 /** 디버그/테스트용 전역 노출 (콘솔에서 확인할 수 있게) */
