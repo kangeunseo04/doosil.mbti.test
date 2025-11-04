@@ -7,7 +7,6 @@ window.__BASE = window.__BASE || (function () {
   }
   return '/';
 })();
-const BASE = window.__BASE;
 
 function isMaze() {
   try { return /[?&]maze=(1|true)\b/i.test(location.search); }
@@ -39,12 +38,6 @@ function currentMbitSafe() {
   const mbti = (detectMBTI() || '').toUpperCase();
   return /^[EI][NS][FT][JP]$/.test(mbti) ? mbti : 'XXXX';
 }
-
-function currentMbitSafe() {
-  const mbti = (detectMBTI() || '').toUpperCase();
-  return /^[EI][NS][FT][JP]$/.test(mbti) ? mbti : 'XXXX';
-}
-
 // 결과 해시 가짜 경로 적용 (/result→/result-ENFP 등)
 function buildResultURL(mbti) {
   const _m = String(mbti || '').toUpperCase();
