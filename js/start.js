@@ -24,19 +24,30 @@ function calResult() {
 let __infoRetry = 0;   // 이미 네 파일 상단에 있다면 중복 선언 X
 let __qnaRetry  = 0;
 
- function setResult() {
-  // 1) 결과 인덱스 먼저 계산
+function setResult() {
   const point = calResult();
 
-  // 2) 데이터 소스 확보 (둘 중 들어온 쪽)
-  const list = window.infoList || window.infolist;
+  // ✅ infoList 정규화
+  const list =
+    (window.infoList) ||
+    (window.infolist) ||
+    (typeof infolist !== 'undefined' ? infolist : null);
 
-  // 3) 데이터 준비가 안 됐으면 잠깐 대기 후 재시도
   if (!Array.isArray(list) || !list[point]) {
-    if (__infoRetry++ < 60) return setTimeout(setResult, 50);
-    console.error('infoList 미로딩 또는 인덱스 오류. point=', point);
-    return;
+    if (__infoRetry++ < 120) {           // 재시도 횟수 충분히
+      return setTimeout(setResult, 50);
+    } else {
+      console.error('infoList 로드/인덱스 오류', {
+        point,
+        listType: typeof list,
+        listLen: Array.isArray(list) ? list.length : 'N/A'
+      });
+      return;
+    }
   }
+
+  // ↓↓↓ 이후 기존 로직 유지 (resultname, resultImg, resultDesc 갱신 등)
+}
 
   // 4) 타이틀 (있는 셀렉터 우선)
   const resultNameEl =
