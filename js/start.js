@@ -242,10 +242,6 @@ document.addEventListener('keydown', e => {
     } else {
       console.log('✅ 스토리카드 키보드 활성화:', tag);
     }
-  }
-}, { capture: true });
-
-
-
-
+    { capture: true });
+}
 
