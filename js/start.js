@@ -97,25 +97,6 @@ links.forEach((a) => {
   );
 }); // ← forEach는 여기서 '한 번만' 닫힘
 
-  a.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      sendEvent();
-    }
-  }, { capture: true });
-}); // ← forEach는 여기서 딱 한 번만 닫힘
-
-  // 키보드(Enter/Space)도 동일하게 처리
-  a.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      sendEvent();
-    }
-  }, { capture: true });
-});
-
 // 결과 화면으로 전환
 function goResult() {
   qna.style.WebkitAnimation = 'fadeOut 1s';
