@@ -28,7 +28,7 @@ function setResult() {
   const point = calResult();
 
   // data.js 로드 지연이면 잠깐 기다렸다 재시도 (최대 60회 ≒ 3초)
-   if (!window.infoList || !Array.isArray(infoList) || !infoList[point]) {
+   if (!window.infolist || !Array.isArray(infoList) || !infoList[point]) {
     if (__infoRetry++ < 60) {
       return setTimeout(setResult, 50);
     } else {
@@ -38,19 +38,19 @@ function setResult() {
   }
 
   const resultName = document.querySelector('#resultName');
-resultName.innerHTML = infoList[point].name;
+resultName.innerHTML = infolist[point].name;
 
   const imgDiv = document.querySelector('#resultImg');
   imgDiv.innerHTML = '';
   const img = document.createElement('img');
   img.src = 'img/image-' + point + '.png';
-  img.alt = infoList[point].name || String(point);
+  img.alt = infolist[point].name || String(point);
   img.classList.add('img-fluid');
   imgDiv.appendChild(img);
 
  // 결과 설명 주입 직후
 const resultDesc = document.querySelector('.resultDesc');
-resultDesc.innerHTML = infoList[point].desc;
+resultDesc.innerHTML = infolist[point].desc;
 
 // ▼ 추천 스토리카드 링크들: 클릭만, 이동 금지
 const links = resultDesc.querySelectorAll('a');
