@@ -96,7 +96,7 @@ links.forEach((a) => {
     { capture: true }
   );
 }); // ← forEach는 여기서 '한 번만' 닫힘
-
+}
 // 결과 화면으로 전환
 function goResult() {
   qna.style.WebkitAnimation = 'fadeOut 1s';
