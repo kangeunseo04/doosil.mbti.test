@@ -20,74 +20,91 @@ function calResult() {
   return idx >= 0 ? idx : 0;
 }
 
-let __infoRetry = 0;
-let __qnaRetry = 0;
+// ===== 결과 그리기 =====
+let __infoRetry = 0;   // 이미 네 파일 상단에 있다면 중복 선언 X
+let __qnaRetry  = 0;
 
-// 결과 화면 그리기
 function setResult() {
-  const list = (window.infoList || window.infolist); // data.js 가 내보내는 배열
-  if (!Array.isArray(list)) {
-    if (++__infoRetry < 60) return setTimeout(setResult, 50);
-    console.error('infoList 미로딩 또는 인덱스 오류.');
+  // 1) infoList 확보 (대소문자 혼용 방지)
+  const list = window.infoList || window.infolist;
+  // 2) 로딩 대기 & 인덱스 유효성 체크
+  if (!Array.isArray(list) || !Number.isInteger(point) || point < 0 || point >= list.length) {
+    if (__infoRetry++ < 60) return setTimeout(setResult, 50);
+    console.error('infoList 미로딩 또는 인덱스 오류. point=', point, 'len=', list && list.length);
     return;
   }
 
-  const point = calResult();
-  if (!list[point]) {
-    console.error('Invalid result point:', point);
-    return;
-  }
+  const item = list[point];
 
-  // 타이틀
+  // 3) 결과 타이틀
   const resultNameEl =
     document.querySelector('.resultname') ||
     document.querySelector('#resultName');
-  if (resultNameEl) resultNameEl.textContent = list[point].name || '';
+  if (resultNameEl) resultNameEl.textContent = item.name || '';
 
-  // 결과 이미지
+  // 4) 결과 이미지
   const imgDiv = document.querySelector('#resultImg');
   if (imgDiv) {
-    imgDiv.innerHTML = '';
-    const img = document.createElement('img');
-    // 프로젝트 경로/폴더 구조에 맞춰 필요시 경로 수정 (예: '/img/image-..' vs 'img/image-..')
-    img.src = `img/image-${point}.png`;
-    img.alt = list[point].name || String(point);
-    img.classList.add('img-fluid');
+    imgDiv.replaceChildren();
+    const img = new Image();
+    // ★ 파일명/경로 확인: /img/image-0.png 형식으로 맞추거나 item.img가 있으면 그걸 사용
+    img.src = item.img ? item.img : `img/image-0.png`;
+    img.alt = item.name || String(point);
+    img.className = 'img-fluid';
+    img.addEventListener('error', () => {
+      console.error('이미지 로드 실패. 경로 확인:', img.src);
+    });
     imgDiv.appendChild(img);
   }
 
-  // 설명 HTML 삽입
+  // 5) 결과 설명 + 내부 링크 무력화(클릭만 추적)
   const resultDesc = document.querySelector('.resultDesc');
-  if (resultDesc) resultDesc.innerHTML = list[point].desc || '';
-
-  // --- 스토리카드: 링크 막고, 클릭/엔터만 추적 ---
   if (resultDesc) {
+    resultDesc.innerHTML = item.desc || '';
+
     const links = resultDesc.querySelectorAll('a');
-    links.forEach(a => {
+    links.forEach((a) => {
       a.removeAttribute('target');
-      a.removeAttribute('href');          // ← 링크 이동 금지
-      a.setAttribute('role', 'button');   // 접근성
+      a.removeAttribute('href');
+      a.setAttribute('role', 'button');
       a.setAttribute('tabindex', '0');
-
-      const send = () => {
-        const tag = (a.textContent || '').trim();
-        if (window.Maze && typeof Maze.customEvent === 'function') {
-          Maze.customEvent('storycard_click', { tag });
-        } else {
-          console.log('✅ 스토리카드 클릭:', tag);
-        }
-      };
-
-      a.addEventListener('click', (e) => {
-        e.preventDefault(); e.stopImmediatePropagation(); send();
-      }, { capture: true });
-
-      a.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault(); e.stopImmediatePropagation(); send();
-        }
-      }, { capture: true });
     });
+
+    // 결과영역 내 링크: 클릭/키보드(Enter/Space) → 네비게이션 차단 + Maze 이벤트(옵션)
+    const sendEvent = (a) => {
+      const tag = (a.textContent || '').trim();
+      if (window.Maze && typeof Maze.customEvent === 'function') {
+        Maze.customEvent('storycard_click', { tag });
+      } else {
+        console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
+      }
+    };
+
+    resultDesc.addEventListener(
+      'click',
+      (e) => {
+        const a = e.target.closest('.resultDesc a');
+        if (!a) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        sendEvent(a);
+      },
+      { capture: true }
+    );
+
+    resultDesc.addEventListener(
+      'keydown',
+      (e) => {
+        const a = e.target.closest('.resultDesc a');
+        if (!a) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          sendEvent(a);
+        }
+      },
+      { capture: true }
+    );
   }
 }
 
