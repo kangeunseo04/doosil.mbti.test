@@ -14,7 +14,6 @@ function isMaze() {
   catch (_){ return false; }
 }
 
-// MBTI 안전 추출
 function detectMBTI() {
   const el = document.getElementById('result');
   let byAttr = '';
@@ -34,6 +33,11 @@ function detectMBTI() {
   if (/^[EI][NS][FT][JP]$/.test(fromLS)) return fromLS;
 
   return '';
+}
+
+function currentMbitSafe() {
+  const mbti = (detectMBTI() || '').toUpperCase();
+  return /^[EI][NS][FT][JP]$/.test(mbti) ? mbti : 'XXXX';
 }
 
 function currentMbitSafe() {
