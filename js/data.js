@@ -234,5 +234,11 @@ const qnaList = [
       desc: '<br><br><span style="font-size:1.3rem; font-weight: 400;">✨ 당신에게 추천하는 스토리카드 ✨</span><br><div style="width:100%; height:0.1rem; background-color:#fff;"></div><br><a target="_blank" href="https://doosil.com/toad/search/search?q=%EC%BB%A4%EB%A6%AC%EC%96%B4%ED%94%8C%EB%9E%9C&t=tagview&tagId=648#utm_source=style_test&utm_medium=cpc&utm_campaign=style_test&utm_id=style_test" style="text-decoration: none; color:#fff; white-space: nowrap; font-weight: 400;">#커리어플랜</a><a target="_blank" href="https://doosil.com/toad/search/search?q=POP&t=tagview&tagId=1629#utm_source=style_test&utm_medium=cpc&utm_campaign=style_test&utm_id=style_test" style="text-decoration: none; color:#fff; white-space: nowrap; font-weight: 400;">#POP</a><a target="_blank" href="https://doosil.com/toad/search/search?q=%EC%97%AC%ED%96%89%EB%A9%94%EC%9D%B4%ED%8A%B8&t=tagview&tagId=391#utm_source=style_test&utm_medium=cpc&utm_campaign=style_test&utm_id=style_test" style="text-decoration: none; color:#fff; white-space: nowrap; font-weight: 400;">#여행메이트</a><br><br><span style="font-size:1.2rem; font-weight: 300; display: block; margin: 8px;">☝🏻 위 태그를 눌러 스토리카드를 확인해보세요.</span>'
     },
   ]
-// data.js의 맨 아래(리스트 정의 이후)에 추가
-window.infoList = window.infoList || window.infolist || (typeof infolist !== 'undefined' ? infolist : undefined);
+// ==== glue: expose infoList globally (both infoList / infolist supported) ====
+;(function (g) {
+  if (!g.infoList) {
+    if (typeof infoList !== 'undefined') g.infoList = infoList;
+    else if (typeof infolist !== 'undefined') g.infoList = infolist;
+    else g.infoList = [];
+  }
+})(window);
