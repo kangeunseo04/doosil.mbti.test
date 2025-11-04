@@ -52,31 +52,42 @@ function setResult() {
 const resultDesc = document.querySelector('.resultDesc');
 resultDesc.innerHTML = infoList[point].desc;
 
-// 🔒 추천 스토리카드 링크들: 클릭만, 이동 금지
+// ▼ 추천 스토리카드 링크들: 클릭만, 이동 금지
 const links = resultDesc.querySelectorAll('a');
 
+// 접근성/속성 정리
 links.forEach(a => {
-  a.removeAttribute('target');       // 새창 금지
-  a.removeAttribute('href');         // 링크 자체 제거 (핵심)
-  a.setAttribute('role', 'button');  // 접근성
+  a.removeAttribute('target');
+  a.removeAttribute('href');       // 네비게이션 자체 차단
+  a.setAttribute('role', 'button');
   a.setAttribute('tabindex', '0');
 });
 
-
+// 이벤트 바인딩 (클릭 + 키보드)
+links.forEach(a => {
   const sendEvent = () => {
     const tag = (a.textContent || '').trim();
     if (window.Maze && typeof Maze.customEvent === 'function') {
       Maze.customEvent('storycard_click', { tag });
     } else {
-      console.log('✅ 스토리카드 클릭(로깅만):', tag);
+      console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
     }
   };
 
   a.addEventListener('click', (e) => {
     e.preventDefault();
-    e.stopImmediatePropagation(); // 다른 리스너로 버블링 방지
+    e.stopImmediatePropagation();
     sendEvent();
   }, { capture: true });
+
+  a.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sendEvent();
+    }
+  }, { capture: true });
+}); // ← forEach는 여기서 딱 한 번만 닫힘
 
   // 키보드(Enter/Space)도 동일하게 처리
   a.addEventListener('keydown', (e) => {
