@@ -36,17 +36,26 @@ function setResult() {
   // 1) 결과 index
   let point = calResult();
 
-  // 2) infoList 존재/대기 (이미 있으니 유지)
-  const list = (window.infoList || window.infolist);
+  // 2) infoList 확인용 (디버그 로그)
+  const list = window.infoList || window.infolist;
+  console.log(
+    'infoList loaded?', Array.isArray(list), 'len',
+    Array.isArray(list) ? list.length : 'N/A'
+  );
+
+  // 3) infoList 존재 안 하면 재시도
   if (!Array.isArray(list) || !list.length) {
     if (__infoRetry++ < 60) return setTimeout(setResult, 50);
     console.error('infoList 미로드 또는 인덱스 오류. point=', point, {
-      listType: typeof list, listLen: Array.isArray(list) ? list.length : 'N/A'
+      listType: typeof list,
+      listLen: Array.isArray(list) ? list.length : 'N/A'
     });
     return;
   }
 
-  // 3) point를 안전 범위로 보정 ← ★중요
+  // --- 나머지 기존 코드 계속 ---
+}
+
   if (point < 0 || point >= list.length) point = 0;
 
   // ... (타이틀 렌더는 그대로)
