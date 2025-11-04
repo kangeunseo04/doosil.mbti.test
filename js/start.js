@@ -9,7 +9,7 @@ const result = document.querySelector('#result');
 
 // 질문 개수와 선택 카운트(예시)
 const endPoint = 12;
-const select   = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const select   = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 // 최종 결과 인덱스 계산
 function calResult() {
@@ -138,7 +138,7 @@ function addAnswer(answerText, qIdx, idx) {
 
     setTimeout(() => {
       const target = qnaList[qIdx].a[idx].type;
-      for (let i = 0; i < target.length; i++) select[target[i]] += 1;
+      ffor (let i = 0; i < target.length; i++) select[Number(target[i])] += 1;
 
       for (let i = 0; i < children.length; i++) children[i].style.display = 'none';
 
