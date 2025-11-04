@@ -24,51 +24,51 @@ function calResult() {
 let __infoRetry = 0;   // 이미 네 파일 상단에 있다면 중복 선언 X
 let __qnaRetry  = 0;
 
-function setResult() {
-  // 1) infoList 확보 (대소문자 혼용 방지)
+ function setResult() {
+  // 1) 결과 인덱스 먼저 계산
+  const point = calResult();
+
+  // 2) 데이터 소스 확보 (둘 중 들어온 쪽)
   const list = window.infoList || window.infolist;
-  // 2) 로딩 대기 & 인덱스 유효성 체크
-  if (!Array.isArray(list) || !Number.isInteger(point) || point < 0 || point >= list.length) {
+
+  // 3) 데이터 준비가 안 됐으면 잠깐 대기 후 재시도
+  if (!Array.isArray(list) || !list[point]) {
     if (__infoRetry++ < 60) return setTimeout(setResult, 50);
-    console.error('infoList 미로딩 또는 인덱스 오류. point=', point, 'len=', list && list.length);
+    console.error('infoList 미로딩 또는 인덱스 오류. point=', point);
     return;
   }
 
-  const item = list[point];
-
-  // 3) 결과 타이틀
+  // 4) 타이틀 (있는 셀렉터 우선)
   const resultNameEl =
     document.querySelector('.resultname') ||
     document.querySelector('#resultName');
-  if (resultNameEl) resultNameEl.textContent = item.name || '';
+  if (resultNameEl) resultNameEl.textContent = list[point].name || '';
 
-  // 4) 결과 이미지
+  // 5) 결과 이미지
   const imgDiv = document.querySelector('#resultImg');
   if (imgDiv) {
-    imgDiv.replaceChildren();
-    const img = new Image();
-    // ★ 파일명/경로 확인: /img/image-0.png 형식으로 맞추거나 item.img가 있으면 그걸 사용
-    img.src = item.img ? item.img : `img/image-0.png`;
-    img.alt = item.name || String(point);
-    img.className = 'img-fluid';
-    img.addEventListener('error', () => {
-      console.error('이미지 로드 실패. 경로 확인:', img.src);
-    });
+    imgDiv.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = `img/image-${point}.png`;
+    img.alt = list[point].name || String(point);
+    img.classList.add('img-fluid');
     imgDiv.appendChild(img);
   }
 
-  // 5) 결과 설명 + 내부 링크 무력화(클릭만 추적)
+  // 6) 결과 설명
   const resultDesc = document.querySelector('.resultDesc');
-  if (resultDesc) {
-    resultDesc.innerHTML = item.desc || '';
+  if (resultDesc) resultDesc.innerHTML = list[point].desc || '';
 
-    const links = resultDesc.querySelectorAll('a');
-    links.forEach((a) => {
+  // 7) 결과 영역의 a 링크들 네비 차단 (클릭만 발생)
+  if (resultDesc) {
+    resultDesc.querySelectorAll('a').forEach((a) => {
       a.removeAttribute('target');
       a.removeAttribute('href');
       a.setAttribute('role', 'button');
       a.setAttribute('tabindex', '0');
     });
+  }
+}
 
     // 결과영역 내 링크: 클릭/키보드(Enter/Space) → 네비게이션 차단 + Maze 이벤트(옵션)
     const sendEvent = (a) => {
