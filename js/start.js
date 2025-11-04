@@ -60,15 +60,19 @@ function setResult() {
 
   // ... (타이틀 렌더는 그대로)
 
-  // 4) 이미지 경로에 BASE 적용 ← ★중요
-  const imgDiv = document.querySelector('#resultImg');
-  if (imgDiv) {
-    imgDiv.innerHTML = '';
-    const img = document.createElement('img');
-    img.src = `${BASE}img/image-${point}.png`;   // ← 상대경로 404 방지
-    img.alt = list[point].name || String(point);
-    img.classList.add('img-fluid');
-    imgDiv.appendChild(img);
+// 2) 결과 이미지
+const imgDiv = document.querySelector('#resultImg');
+if (imgDiv) {
+  imgDiv.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = `img/image-${point}.png`; // BASE 쓰면 BASE+경로로
+  img.alt = list[point].name || String(point);
+  img.classList.add('img-fluid');
+  img.addEventListener('error', () => {
+    console.warn('이미지 로드 실패:', img.src);
+  });
+  imgDiv.appendChild(img);
+}
 
     // (선택) 로드 실패시 디버깅 로그
     img.addEventListener('error', () => {
@@ -78,43 +82,43 @@ function setResult() {
 
   // ... (resultDesc 처리 기존대로)
 }
+// 3) 설명 + 내부 링크 제어
+const resultDesc = document.querySelector('.resultDesc');
+if (resultDesc) {
+  resultDesc.innerHTML = list[point].desc || '';
 
-  // 3) 설명 + 내부 링크 제어
-  const resultDesc = document.querySelector('.resultDesc');
-  if (resultDesc) {
-    resultDesc.innerHTML = list[point].desc || '';
+  const links = resultDesc.querySelectorAll('a');
 
-    // 결과영역 a 링크들: 새창/네비 차단 + Maze 커스텀 이벤트
-    const links = resultDesc.querySelectorAll('a');
+  const sendEvent = (a) => {
+    const tag = (a.textContent || '').trim();
+    if (window.Maze && typeof Maze.customEvent === 'function') {
+      Maze.customEvent('storycard_click', { tag });
+    } else {
+      console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
+    }
+  };
 
-    const sendEvent = (a) => {
-      const tag = (a.textContent || '').trim();
-      if (window.Maze && typeof Maze.customEvent === 'function') {
-        Maze.customEvent('storycard_click', { tag });
-      } else {
-        console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
-      }
-    };
+  links.forEach((a) => {
+    a.removeAttribute('target');
+    a.removeAttribute('href');
+    a.setAttribute('role', 'button');
+    a.setAttribute('tabindex', '0');
 
-    links.forEach(a => {
-      a.removeAttribute('target');
-      a.removeAttribute('href');
-      a.setAttribute('role', 'button');
-      a.setAttribute('tabindex', '0');
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sendEvent(a);
+    }, { capture: true });
 
-      a.addEventListener('click', (e) => {
+    a.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         e.stopImmediatePropagation();
         sendEvent(a);
-      }, { capture: true });
-
-a.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    sendEvent(a);
-  }
-}, { capture: true });
+      }
+    }, { capture: true });
+  });
+}
 
 // 결과 화면으로 전환
 function goResult() {
