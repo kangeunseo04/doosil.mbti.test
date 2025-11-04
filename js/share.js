@@ -118,44 +118,46 @@ function bindShareButton() {
  if (isMaze()) shareBtn.addEventListener('click', setShare);
 }
 
-document.addEventListener('click', (e) => {
-  if (e.target.closest('#shareButton')) return;
+// (기존) 한 덩어리로 정리된 클릭 리스너
+document.addEventListener(
+  'click',
+  (e) => {
+    // 공유버튼은 여기서 무시
+    if (e.target.closest('#shareButton')) return;
 
-  const el = e.target.closest(
-    '#result .tag-list button, ' +
-    '#result .tag-list [role="button"], ' +
-    '#result .story-card button, ' +
-    '#result .story-card a[href], ' +
-    '#result .story-card [role="button"]'
-  );
+    // 결과영역의 태그/스토리카드 클릭만 잡기
+    const el = e.target.closest(
+      '#result .tag-list button, ' +
+      '#result .tag-list [role="button"], ' +
+      '#result .story-card button, ' +
+      '#result .story-card a[href], ' +
+      '#result .story-card [role="button"]'
+    );
+    if (!el) return;
 
-  if (!el) return;
+    // 네비게이션/버블링 막기 (Maze에서만 굴리려는 목적)
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
 
-  // 클릭 이벤트 기본 동작 막기
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
+    const name =
+      el.getAttribute('data-qa') ||
+      (el.closest('.story-card') ? 'story' : 'tag');
 
-  const name = el.getAttribute('data-qa') ||
-    (el.closest('.story-card') ? 'story' : 'tag');
+    markEvent(`s-${name}-${currentMbitSafe()}`);
 
-  markEvent(`s-${name}-${currentMbitSafe()}`);
-
-  // ✅ return은 이 콜백 안의 마지막에
-  return false;
-}, { capture: true, passive: false });
-
-    // data-qa 자동 부여 (선택)
+    // data-qa 없으면 자동 부여 (선택)
     if (!el.getAttribute('data-qa')) {
       const siblings = el.parentElement ? [...el.parentElement.children] : [];
-      const idx = String(
-        siblings.filter((s) => s.hasAttribute?.('data-qa')).length + 1
-      ).padStart(2, '0');
+      const idx = String(siblings.filter((s) => s.hasAttribute('data-qa')).length + 1).padStart(2, '0');
       el.setAttribute('data-qa', `tag-${idx}`);
     }
+
+    // ★ return은 "이 함수 안"의 마지막에 두기
+    return false;
   },
   { capture: true, passive: false }
-);
+); // ★ 여기서 '});'로 정확히 닫힘
 
 /** 해시/가시성/히스토리 변화에 따른 보조 동기화 */
 window.addEventListener('hashchange', () => {
