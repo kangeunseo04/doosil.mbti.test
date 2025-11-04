@@ -155,7 +155,15 @@ function addAnswer(answerText, qIdx, idx) {
 // ▼▼▼ 아래 코드로 복사해서 덮어쓰세요 ▼▼▼
 
 function goNext(qIdx) {
-  // ▼▼▼ data.js(qnaList) 로딩을 기다리는 코드 9줄 ▼▼▼
+  // ▼▼▼ 1. 퀴즈가 끝났는지 *먼저* 확인합니다. ▼▼▼
+  if (qIdx === endPoint) {
+    goResult();
+    return;
+  }
+  // ▲▲▲ 순서가 여기로 이동했습니다. ▲▲▲
+
+
+  // ▼▼▼ 2. 퀴즈가 안 끝났다면, data.js(qnaList) 로딩을 기다립니다. ▼▼▼
   if (typeof qnaList === 'undefined' || !Array.isArray(qnaList) || !qnaList[qIdx]) {
     if (__qnaRetry++ < 60) { // 3초간 재시도
       return setTimeout(() => goNext(qIdx), 50);
@@ -164,12 +172,7 @@ function goNext(qIdx) {
       return; // 실패
     }
   }
-  // ▲▲▲ 여기까지가 추가된 부분입니다 ▲▲▲
-
-  if (qIdx === endPoint) {
-    goResult();
-    return;
-  }
+  // ▲▲▲ 이 블록이 두 번째 순서가 됩니다. ▲▲▲
 
   window.location.hash = `#q/${qIdx}`; // 각 문항 해시
 
