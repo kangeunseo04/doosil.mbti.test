@@ -9,7 +9,7 @@ const result = document.querySelector('#result');
 
 // 질문 개수와 선택 카운트(예시)
 const endPoint = 12;
-const select   = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const select = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 // 최종 결과 인덱스 계산
 function calResult() {
@@ -26,7 +26,7 @@ let __infoRetry = 0;
 let __qnaRetry = 0;
 
 function setResult() {
-  const point = calResult();
+const point = calResult();
 
   // data.js 로드 지연이면 잠깐 기다렸다 재시도 (최대 60회 ≒ 3초)
  if (typeof infolist === 'undefined' || !Array.isArray(infolist) || !infolist[point]) {
@@ -117,7 +117,9 @@ function goResult() {
   setResult();
 }
 
-// 보기(답변) 버튼 생성
+// ▼▼▼ 121줄부터 153줄까지 addAnswer 함수 전체를 ▼▼▼
+// ▼▼▼ 아래 코드로 복사해서 덮어쓰세요 ▼▼▼
+
 function addAnswer(answerText, qIdx, idx) {
   const wrap = document.querySelector('.answerBox');
   const btn = document.createElement('button');
@@ -139,16 +141,22 @@ function addAnswer(answerText, qIdx, idx) {
 
     setTimeout(() => {
       const target = qnaList[qIdx].a[idx].type;
-      ffor (let i = 0; i < target.length; i++) select[Number(target[i])] += 1;
+      
+      // ▼▼▼ 여기가 'ffor'를 'for'로 수정한 핵심 부분입니다 ▼▼▼
+      for (let i = 0; i < target.length; i++) select[Number(target[i])] += 1;
 
       for (let i = 0; i < children.length; i++) children[i].style.display = 'none';
 
       goNext(++qIdx);
-    }, 450);
+    }, 450); // <-- 141줄의 괄호(})가 없는 것이 정상입니다.
   }, false);
-// 다음 질문 세팅
+}
+// ▼▼▼ 155줄부터 180줄까지 goNext 함수 전체를 ▼▼▼
+// ▼▼▼ 아래 코드로 복사해서 덮어쓰세요 ▼▼▼
+
 function goNext(qIdx) {
- if (typeof qnaList === 'undefined' || !Array.isArray(qnaList) || !qnaList[qIdx]) {
+  // ▼▼▼ data.js(qnaList) 로딩을 기다리는 코드 9줄 ▼▼▼
+  if (typeof qnaList === 'undefined' || !Array.isArray(qnaList) || !qnaList[qIdx]) {
     if (__qnaRetry++ < 60) { // 3초간 재시도
       return setTimeout(() => goNext(qIdx), 50);
     } else {
@@ -156,7 +164,7 @@ function goNext(qIdx) {
       return; // 실패
     }
   }
-  // ▲▲▲ 여기까지 추가 ▲▲▲
+  // ▲▲▲ 여기까지가 추가된 부분입니다 ▲▲▲
 
   if (qIdx === endPoint) {
     goResult();
@@ -177,7 +185,6 @@ function goNext(qIdx) {
   const status = document.querySelector('.statusBar');
   status.style.width = (100 / endPoint) * (qIdx + 1) + '%';
 }
-
 // 시작하기 클릭 시 첫 문항으로
 function begin() {
   main.style.WebkitAnimation = 'fadeOut 1s';
