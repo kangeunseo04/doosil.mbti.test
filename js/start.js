@@ -13,39 +13,80 @@ const select   = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 // 최종 결과 인덱스 계산
 function calResult() {
-  // console.log(select);
-  const idx = select.indexOf(Math.max(...select));
-  return idx;
-}
+  // select가 비어 있거나 이상하면 0번으로 폴백
+  if (!Array.isArray(select) || select.length === 0) return 0;
 
-// 결과 화면 세팅: 이름/이미지/설명
+  const max = Math.max(...select);
+  if (!isFinite(max)) return 0;
+
+  const idx = select.indexOf(max);
+  return idx >= 0 ? idx : 0;
+}
+let __infoRetry = 0;
+
 function setResult() {
   const point = calResult();
 
-  // 안전가드
-  if (!window.infoList || !infoList[point]) {
-    console.error('Invalid result point or infoList missing:', point);
-    return;
+  // data.js 로드 지연이면 잠깐 기다렸다 재시도 (최대 60회 ≒ 3초)
+   if (!window.infoList || !Array.isArray(infoList) || !infoList[point]) {
+    if (__infoRetry++ < 60) {
+      return setTimeout(setResult, 50);
+    } else {
+      console.error('infoList 미로딩 또는 인덱스 오류. point=', point);
+      return;
+    }
   }
 
-  // 이름
   const resultName = document.querySelector('.resultname');
   resultName.innerHTML = infoList[point].name;
 
-  // 이미지 (중복 방지)
   const imgDiv = document.querySelector('#resultImg');
   imgDiv.innerHTML = '';
-  const resultImg = document.createElement('img');
-  const imgURL = 'img/image-' + point + '.png';
-  resultImg.src = imgURL;
-  resultImg.alt = point;
-  resultImg.classList.add('img-fluid');
-  imgDiv.appendChild(resultImg);
+  const img = document.createElement('img');
+  img.src = 'img/image-' + point + '.png';
+  img.alt = infoList[point].name || String(point);
+  img.classList.add('img-fluid');
+  imgDiv.appendChild(img);
 
-  // 설명 (여기까지만 — 이벤트 X)
-  const resultDesc = document.querySelector('.resultDesc');
-  resultDesc.innerHTML = infoList[point].desc;
-}
+ // 결과 설명 주입 직후
+const resultDesc = document.querySelector('.resultDesc');
+resultDesc.innerHTML = infoList[point].desc;
+
+// 🔒 추천 스토리카드 링크들: 클릭만, 이동 금지
+const links = resultDesc.querySelectorAll('a');
+
+links.forEach(a => {
+  a.removeAttribute('target');       // 새창 금지
+  a.removeAttribute('href');         // 링크 자체 제거 (핵심)
+  a.setAttribute('role', 'button');  // 접근성
+  a.setAttribute('tabindex', '0');
+});
+
+
+  const sendEvent = () => {
+    const tag = (a.textContent || '').trim();
+    if (window.Maze && typeof Maze.customEvent === 'function') {
+      Maze.customEvent('storycard_click', { tag });
+    } else {
+      console.log('✅ 스토리카드 클릭(로깅만):', tag);
+    }
+  };
+
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopImmediatePropagation(); // 다른 리스너로 버블링 방지
+    sendEvent();
+  }, { capture: true });
+
+  // 키보드(Enter/Space)도 동일하게 처리
+  a.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sendEvent();
+    }
+  }, { capture: true });
+});
 
 // 결과 화면으로 전환
 function goResult() {
@@ -162,31 +203,38 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===================================================
 let lastTagAt = 0; // (선택) 더블클릭 방지
 
-document.addEventListener(
-  'click',
-  function (e) {
-    const link = e.target.closest('.resultDesc a');
-    if (!link) return; // 링크가 아니면 다른 버튼/링크는 그대로 동작
+// 결과 영역(스토리카드) 클릭 + 키보드(Enter/Space) 처리 – 이동 없이 이벤트만
+document.addEventListener('click', e => {
+  const link = e.target.closest('.resultDesc a');
+  if (!link) return;
 
-    e.preventDefault();              // 새창/이동 막기
-    e.stopImmediatePropagation();    // 필요 시 상위 전파 차단
+  e.preventDefault();
+  e.stopImmediatePropagation();
 
-    const now = Date.now();
-    if (now - lastTagAt < 400) return; // 0.4초 이내 중복 클릭 무시
-    lastTagAt = now;
+  const tag = link.textContent.trim();
+  if (window.Maze && typeof Maze.customEvent === 'function') {
+    Maze.customEvent('storycard_click', { tag });
+  } else {
+    console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
+  }
+}, { capture: true });
+
+document.addEventListener('keydown', e => {
+  const link = e.target.closest('.resultDesc a');
+  if (!link) return;
+
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    e.stopImmediatePropagation();
 
     const tag = link.textContent.trim();
-
     if (window.Maze && typeof Maze.customEvent === 'function') {
-      // ⚠️ Maze 플랜/세팅에 따라 수집 가능 여부가 다를 수 있음
       Maze.customEvent('storycard_click', { tag });
-      console.log('🎯 Maze 이벤트 전송:', tag);
     } else {
-      console.log('⚠️ Maze 미탑재 → 클릭만 로깅:', tag);
+      console.log('✅ 스토리카드 키보드 활성화:', tag);
     }
-  },
-  { capture: true }
-);
+  }
+}, { capture: true });
 
 
 
