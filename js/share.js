@@ -118,31 +118,32 @@ function bindShareButton() {
  if (isMaze()) shareBtn.addEventListener('click', setShare);
 }
 
-// 🔧 여기부터 한 덩어리로 교체
-document.addEventListener(
-  'click',
-  (e) => {
-    // 공유 버튼이면 여기서는 아무 것도 하지 않고 바로 종료
-    if (e.target.closest('#shareButton')) return;
-    }, { capture: true, passive: false });
-    // (아래는 기존 태그/스토리카드 처리 로직)
-    const el = e.target.closest(
-      '#result .tag-list button, ' +
-      '#result .tag-list [role="button"], ' +
-      '#result .story-card button, ' +
-      '#result .story-card a[href], ' +
-      '#result .story-card [role="button"]'
-    );
-    if (!el) return;
-+ e.preventDefault();
-+ e.stopPropagation();
-+ e.stopImmediatePropagation();
-  const name =
-    el.getAttribute('data-qa') ||
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#shareButton')) return;
+
+  const el = e.target.closest(
+    '#result .tag-list button, ' +
+    '#result .tag-list [role="button"], ' +
+    '#result .story-card button, ' +
+    '#result .story-card a[href], ' +
+    '#result .story-card [role="button"]'
+  );
+
+  if (!el) return;
+
+  // 클릭 이벤트 기본 동작 막기
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+
+  const name = el.getAttribute('data-qa') ||
     (el.closest('.story-card') ? 'story' : 'tag');
-  // ...
-  markEvent(`s-${name}-${currentMbtiSafe()}`);
-// } // <-- 이 줄을 삭제 (또는 //로 주석 처리)
+
+  markEvent(`s-${name}-${currentMbitSafe()}`);
+
+  // ✅ return은 이 콜백 안의 마지막에
+  return false;
+}, { capture: true, passive: false });
 
     // data-qa 자동 부여 (선택)
     if (!el.getAttribute('data-qa')) {
