@@ -77,10 +77,7 @@ if (resultDesc) {
       e.stopImmediatePropagation();
       sendEvent(a);
     }, { capture: true });
-  });
-}
-}
-
+    
     a.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -88,6 +85,7 @@ if (resultDesc) {
         sendEvent(a);
       }
     }, { capture: true });
+  });
 // 결과 화면으로 전환
 function goResult() {
   qna.style.WebkitAnimation = 'fadeOut 1s';
