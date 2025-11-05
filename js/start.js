@@ -88,7 +88,6 @@ if (resultDesc) {
         sendEvent(a);
       }
     }, { capture: true });
-  });
 }
 
 // 결과 화면으로 전환
