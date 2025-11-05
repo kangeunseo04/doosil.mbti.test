@@ -1,16 +1,3 @@
-// =========================
-//  start.js (clean version)
-// =========================
-// start.js 최상단 어딘가(선언부 위)
-const BASE = (() => {
-  const { hostname, pathname } = location;
-  if (hostname.endsWith('github.io')) {
-    const segs = pathname.split('/').filter(Boolean);
-    return segs.length ? `/${segs[0]}/` : '/';
-  }
-  return '/';
-})();
-// 기본 엘리먼트
 const main   = document.querySelector('#main');
 const qna    = document.querySelector('#qna');
 const result = document.querySelector('#result');
@@ -74,23 +61,11 @@ function setResult() {
   }
 const resultDesc = document.querySelector('.resultDesc');
 if (resultDesc) {
-  // 결과 텍스트
   resultDesc.innerHTML = list[point].desc || '';
 
-  // 결과 영역 내부 링크만 수집
+  // 앵커 링크 제어는 resultDesc가 있을 때만
   const links = resultDesc.querySelectorAll('a');
 
-  // 공통 이벤트
-  const sendEvent = (a) => {
-    const tag = (a.textContent || '').trim();
-    if (window.Maze && typeof Maze.customEvent === 'function') {
-      Maze.customEvent('storycard_click', { tag });
-    } else {
-      console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
-    }
-  };
-
-  // 링크를 버튼처럼, 네비게이션 차단
   links.forEach((a) => {
     a.removeAttribute('target');
     a.removeAttribute('href');
