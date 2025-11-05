@@ -77,6 +77,9 @@ if (resultDesc) {
       e.stopImmediatePropagation();
       sendEvent(a);
     }, { capture: true });
+  });
+}
+}
 
     a.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -92,7 +95,7 @@ if (resultDesc) {
 function goResult() {
   qna.style.WebkitAnimation = 'fadeOut 1s';
   qna.style.animation       = 'fadeOut 1s';
-
+}
   setTimeout(() => {
     result.style.WebkitAnimation = 'fadeIn 1s';
     result.style.animation       = 'fadeIn 1s';
@@ -105,7 +108,6 @@ function goResult() {
 
   window.location.hash = '#result'; // 해시
   setResult();
-}
 
 // 보기(답변) 버튼 생성
 function addAnswer(answerText, qIdx, idx) {
@@ -194,4 +196,3 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.dataset.bound = '1';
   }
 });
-}
