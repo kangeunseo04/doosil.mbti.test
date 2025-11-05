@@ -88,8 +88,6 @@ if (resultDesc) {
         sendEvent(a);
       }
     }, { capture: true });
-}
-
 // 결과 화면으로 전환
 function goResult() {
   qna.style.WebkitAnimation = 'fadeOut 1s';
