@@ -63,33 +63,15 @@ function setResult() {
   const resultDesc = document.querySelector('.resultDesc');
   if (resultDesc) {
     resultDesc.innerHTML = list[point].desc || '';
-
-    // 앵커 링크 제어는 resultDesc가 있을 때만
-    const links = resultDesc.querySelectorAll('a');
-
-    links.forEach((a) => {
-      a.removeAttribute('target');
-      a.removeAttribute('href');
-      a.setAttribute('role', 'button');
-      a.setAttribute('tabindex', '0');
-
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        // sendEvent(a); // 참고: sendEvent 함수가 정의되지 않았습니다.
-      }, { capture: true });
-      
-      a.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          // sendEvent(a); // 참고: sendEvent 함수가 정의되지 않았습니다.
-        }
-      }, { capture: true });
-    });
+try {
+    const mbtiType = (window.infoList || window.infolist)[point].name;
+    // Maze 추적을 위해 결과 페이지 해시를 #result-MBTI유형 으로 설정
+    window.location.hash = 'result-' + mbtiType; 
+  } catch (e) {
+    console.error('해시 설정 실패', e);
+    window.location.hash = 'result-unknown'; // 실패 시
   }
-} // <-- 1. 여기가 setResult 함수의 올바른 닫는 위치입니다.
-
+  
 // 결과 화면으로 전환
 function goResult() {
   qna.style.WebkitAnimation = 'fadeOut 1s';
@@ -106,7 +88,6 @@ function goResult() {
     result.style.display = 'block';
   }, 450);
 
-  window.location.hash = '#result'; // 해시
   setResult();
 }
 
