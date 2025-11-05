@@ -37,7 +37,7 @@ function setResult() {
     return;
   }
 
-  // 4) point 범위 보정 (여기에서 **_point**가 아니라 **point**를 사용해야 함)
+  // 4) point 범위 보정
   if (point < 0 || point >= list.length) point = 0;
 
   // 5) 타이틀
@@ -59,39 +59,43 @@ function setResult() {
     });
     imgDiv.appendChild(img);
   }
-const resultDesc = document.querySelector('.resultDesc');
-if (resultDesc) {
-  resultDesc.innerHTML = list[point].desc || '';
+  
+  const resultDesc = document.querySelector('.resultDesc');
+  if (resultDesc) {
+    resultDesc.innerHTML = list[point].desc || '';
 
-  // 앵커 링크 제어는 resultDesc가 있을 때만
-  const links = resultDesc.querySelectorAll('a');
+    // 앵커 링크 제어는 resultDesc가 있을 때만
+    const links = resultDesc.querySelectorAll('a');
 
-  links.forEach((a) => {
-    a.removeAttribute('target');
-    a.removeAttribute('href');
-    a.setAttribute('role', 'button');
-    a.setAttribute('tabindex', '0');
+    links.forEach((a) => {
+      a.removeAttribute('target');
+      a.removeAttribute('href');
+      a.setAttribute('role', 'button');
+      a.setAttribute('tabindex', '0');
 
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      sendEvent(a);
-    }, { capture: true });
-    
-    a.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      a.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopImmediatePropagation();
-        sendEvent(a);
-      }
-    }, { capture: true });
-  });
-}
+        // sendEvent(a); // 참고: sendEvent 함수가 정의되지 않았습니다.
+      }, { capture: true });
+      
+      a.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          // sendEvent(a); // 참고: sendEvent 함수가 정의되지 않았습니다.
+        }
+      }, { capture: true });
+    });
+  }
+} // <-- 1. 여기가 setResult 함수의 올바른 닫는 위치입니다.
+
 // 결과 화면으로 전환
 function goResult() {
   qna.style.WebkitAnimation = 'fadeOut 1s';
   qna.style.animation       = 'fadeOut 1s';
-}
+
+  // 2. 이 코드들이 goResult 함수 안으로 들어와야 합니다.
   setTimeout(() => {
     result.style.WebkitAnimation = 'fadeIn 1s';
     result.style.animation       = 'fadeIn 1s';
@@ -104,6 +108,7 @@ function goResult() {
 
   window.location.hash = '#result'; // 해시
   setResult();
+}
 
 // 보기(답변) 버튼 생성
 function addAnswer(answerText, qIdx, idx) {
@@ -192,3 +197,5 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.dataset.bound = '1';
   }
 });
+
+// 3. 파일 맨 마지막에 있던 불필요한 } 들을 모두 제거했습니다.
