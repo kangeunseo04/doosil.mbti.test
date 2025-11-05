@@ -72,22 +72,25 @@ function setResult() {
     });
     imgDiv.appendChild(img);
   }
+const resultDesc = document.querySelector('.resultDesc');
+if (resultDesc) {
+  // 결과 텍스트
+  resultDesc.innerHTML = list[point].desc || '';
 
-  // 7) 설명 + 내부 링크 제어 (기존 코드 유지)
-  const resultDesc = document.querySelector('.resultDesc');
-  if (resultDesc) {
-    resultDesc.innerHTML = list[point].desc || '';
-    const links = resultDesc.querySelectorAll('a');
-    links.forEach((a) => {
-      a.removeAttribute('target');
-      a.removeAttribute('href');
-      a.setAttribute('role', 'button');
-      a.setAttribute('tabindex', '0');
-    });
-  }
-}
+  // 결과 영역 내부 링크만 수집
+  const links = resultDesc.querySelectorAll('a');
 
+  // 공통 이벤트
+  const sendEvent = (a) => {
+    const tag = (a.textContent || '').trim();
+    if (window.Maze && typeof Maze.customEvent === 'function') {
+      Maze.customEvent('storycard_click', { tag });
+    } else {
+      console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
+    }
+  };
 
+  // 링크를 버튼처럼, 네비게이션 차단
   links.forEach((a) => {
     a.removeAttribute('target');
     a.removeAttribute('href');
@@ -108,6 +111,7 @@ function setResult() {
       }
     }, { capture: true });
   });
+}
 
 // 결과 화면으로 전환
 function goResult() {
