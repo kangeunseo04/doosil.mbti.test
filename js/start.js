@@ -194,4 +194,4 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.dataset.bound = '1';
   }
 });
-
+}
