@@ -60,114 +60,54 @@ function setResult() {
     imgDiv.appendChild(img);
   }
   
-  const resultDesc = document.querySelector('.resultDesc');
-  if (resultDesc) {
-    resultDesc.innerHTML = list[point].desc || '';
-try {
-    const mbtiType = (window.infoList || window.infolist)[point].name;
-    // Maze 추적을 위해 결과 페이지 해시를 #result-MBTI유형 으로 설정
-    window.location.hash = 'result-' + mbtiType; 
-  } catch (e) {
-    console.error('해시 설정 실패', e);
-    window.location.hash = 'result-unknown'; // 실패 시
-  }
-  
-// 결과 화면으로 전환
-function goResult() {
-  qna.style.WebkitAnimation = 'fadeOut 1s';
-  qna.style.animation       = 'fadeOut 1s';
+ // 3) 설명 + 내부 링크 제어
+const resultDesc = document.querySelector('.resultDesc');
+if (resultDesc) {
+  resultDesc.innerHTML = list[point].desc || '';
 
-  // 2. 이 코드들이 goResult 함수 안으로 들어와야 합니다.
-  setTimeout(() => {
-    result.style.WebkitAnimation = 'fadeIn 1s';
-    result.style.animation       = 'fadeIn 1s';
-  }, 450);
+  const links = resultDesc.querySelectorAll('a');
+  const sendEvent = (a) => {
+    const tag = (a.textContent || '').trim();
+    if (window.Maze && typeof Maze.customEvent === 'function') {
+      Maze.customEvent('storycard_click', { tag });
+    } else {
+      console.log('✔️ 스토리카드 클릭:', tag);
+    }
+  };
 
-  setTimeout(() => {
-    qna.style.display    = 'none';
-    result.style.display = 'block';
-  }, 450);
+  links.forEach((a) => {
+    a.removeAttribute('target');
+    a.removeAttribute('href');
+    a.setAttribute('role', 'button');
+    a.setAttribute('tabindex', '0');
 
-  setResult();
-}
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sendEvent(a);
+    }, { capture: true });
+
+    a.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        sendEvent(a);
+      }
+    }, { capture: true });
+  });
+} // ←←← 이 중괄호가 반드시 필요!
+
+// 4) 결과 화면으로 전환
+function goResult() { /* ... 그대로 ... */ }
 
 // 보기(답변) 버튼 생성
-function addAnswer(answerText, qIdx, idx) {
-  const wrap = document.querySelector('.answerBox');
-  const btn  = document.createElement('button');
-  btn.classList.add('answerList', 'my-3', 'py-3', 'mx-auto', 'fadeIn');
-  btn.setAttribute('data-maze', `q${qIdx}->a${idx}`);
-  btn.textContent = answerText;
-  wrap.appendChild(btn);
+function addAnswer(answerText, qIdx, idx) { /* ... 그대로 ... */ }
 
-  btn.addEventListener('click', function () {
-    const children = document.querySelectorAll('.answerList');
+// 다음 질문
+function goNext(qIdx) { /* ... 그대로 ... */ }
 
-    // 더블클릭/중복 방지
-    for (let i = 0; i < children.length; i++) {
-      children[i].disabled = true;
-      children[i].style.WebkitAnimation = 'fadeOut 0.5s';
-      children[i].style.animation       = 'fadeOut 0.5s';
-    }
-
-    setTimeout(() => {
-      const target = qnaList[qIdx].a[idx].type;
-      for (let i = 0; i < target.length; i++) select[Number(target[i])] += 1;
-      for (let i = 0; i < children.length; i++) children[i].style.display = 'none';
-      goNext(++qIdx);
-    }, 450);
-  });
-}
-
-// 다음 질문 세팅
-function goNext(qIdx) {
-  if (qIdx === endPoint) {
-    goResult();
-    return;
-  }
-
-  // qnaList 로딩 대기(안전)
-  if (typeof qnaList === 'undefined' || !Array.isArray(qnaList) || !qnaList[qIdx]) {
-    if (__qnaRetry++ < 60) return setTimeout(() => goNext(qIdx), 50);
-    console.error('qnaList 미로드 또는 인덱스 오류. qIdx=', qIdx);
-    return;
-  }
-
-  window.location.hash = `#q/${qIdx}`; // 각 문항 해시
-
-  // 질문/보기 그리기
-  const q = document.querySelector('.qBox');
-  q.innerHTML = qnaList[qIdx].q;
-
-  for (let i in qnaList[qIdx].a) {
-    addAnswer(qnaList[qIdx].a[i].answer, qIdx, i);
-  }
-
-  // 진행 상태 바
-  const status = document.querySelector('.statusBar');
-  if (status) status.style.width = (100 / endPoint) * (qIdx + 1) + '%';
-}
-
-// 시작하기 클릭 시 첫 화면으로
-function begin() {
-  main.style.WebkitAnimation = 'fadeOut 1s';
-  main.style.animation       = 'fadeOut 1s';
-
-  setTimeout(() => {
-    qna.style.WebkitAnimation = 'fadeIn 1s';
-    qna.style.animation       = 'fadeIn 1s';
-  }, 450);
-
-  setTimeout(() => {
-    main.style.display = 'none';
-    qna.style.display  = 'block';
-  }, 450);
-
-  window.location.hash = '#q/0';
-  goNext(0);
-}
-
-// 외부에서도 begin() 호출할 수 있게 노출
+// 시작하기
+function begin() { /* ... 그대로 ... */ }
 window.begin = begin;
 
 // DOMContentLoaded 초기 바인딩
@@ -177,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', begin);
     startBtn.dataset.bound = '1';
   }
-});
+}); // ←←← 마지막은 꼭 }); 로 끝나야 함
+
 
 // 3. 파일 맨 마지막에 있던 불필요한 } 들을 모두 제거했습니다.
