@@ -59,22 +59,25 @@ function setResult() {
     });
     imgDiv.appendChild(img);
   }
-  
- // 3) 설명 + 내부 링크 제어
+// 3) 설명 + 내부 링크 제어
 const resultDesc = document.querySelector('.resultDesc');
 if (resultDesc) {
   resultDesc.innerHTML = list[point].desc || '';
 
+  // 결과영역 내 모든 링크 가져오기
   const links = resultDesc.querySelectorAll('a');
+
+  // Maze 이벤트 전송용 헬퍼
   const sendEvent = (a) => {
     const tag = (a.textContent || '').trim();
     if (window.Maze && typeof Maze.customEvent === 'function') {
       Maze.customEvent('storycard_click', { tag });
     } else {
-      console.log('✔️ 스토리카드 클릭:', tag);
+      console.log('✅ 스토리카드 클릭(로컬 로깅):', tag);
     }
   };
 
+  // 링크를 버튼처럼 동작시키고 네비게이션 차단
   links.forEach((a) => {
     a.removeAttribute('target');
     a.removeAttribute('href');
@@ -95,19 +98,102 @@ if (resultDesc) {
       }
     }, { capture: true });
   });
-} // ←←← 이 중괄호가 반드시 필요!
+}
 
-// 4) 결과 화면으로 전환
-function goResult() { /* ... 그대로 ... */ }
+// 결과 화면으로 전환
+function goResult() {
+  qna.style.webkitAnimation = 'fadeOut 1s';
+  qna.style.animation      = 'fadeOut 1s';
+
+  setTimeout(() => {
+    result.style.webkitAnimation = 'fadeIn 1s';
+    result.style.animation       = 'fadeIn 1s';
+  }, 450);
+
+  setTimeout(() => {
+    main.style.display  = 'none';
+    result.style.display = 'block';
+  }, 450);
+
+  window.location.hash = '#result';
+  setResult();
+}
 
 // 보기(답변) 버튼 생성
-function addAnswer(answerText, qIdx, idx) { /* ... 그대로 ... */ }
+function addAnswer(answerText, qIdx, idx) {
+  const wrap = document.querySelector('.answerBox');
+  const btn  = document.createElement('button');
+  btn.classList.add('answerList', 'my-3', 'py-3', 'mx-auto', 'fadeIn');
+  btn.setAttribute('data-maze', `q${qIdx}->a${idx}`);
+  btn.textContent = answerText;
+  wrap.appendChild(btn);
+
+  btn.addEventListener('click', function () {
+    const children = document.querySelectorAll('.answerList');
+
+    for (let i = 0; i < children.length; i++) {
+      children[i].disabled = true;
+      children[i].style.webkitAnimation = 'fadeOut 0.5s';
+      children[i].style.animation       = 'fadeOut 0.5s';
+    }
+
+    setTimeout(() => {
+      const target = qnaList[qIdx].a[idx].type;
+      for (let i = 0; i < target.length; i++) select[Number(target[i])] += 1;
+      for (let i = 0; i < children.length; i++) children[i].style.display = 'none';
+      goNext(qIdx + 1);
+    }, 450);
+  });
+}
 
 // 다음 질문
-function goNext(qIdx) { /* ... 그대로 ... */ }
+function goNext(qIdx) {
+  if (qIdx === endPoint) {
+    goResult();
+    return;
+  }
 
-// 시작하기
-function begin() { /* ... 그대로 ... */ }
+  if (typeof qnaList === 'undefined' || !Array.isArray(qnaList) || !qnaList[qIdx]) {
+    if (__qnaRetry++ < 60) return setTimeout(() => goNext(qIdx), 50);
+    console.error('qnaList 미로드 또는 인덱스 오류, qIdx=', qIdx);
+    return;
+  }
+
+  window.location.hash = `#q/${qIdx}`;
+
+  // 질문/보기를 그림
+  const q = document.querySelector('.qBox');
+  q.innerHTML = qnaList[qIdx].q;
+
+  for (let i = 0; i < qnaList[qIdx].a.length; i++) {
+    addAnswer(qnaList[qIdx].a[i].answer, qIdx, i);
+  }
+
+  // 진행 상태 바
+  const status = document.querySelector('.statusBar');
+  if (status) status.style.width = (100 / endPoint) * (qIdx + 1) + '%';
+}
+
+// 시작하기 눌렀을 때 첫 화면으로
+function begin() {
+  main.style.webkitAnimation = 'fadeOut 1s';
+  main.style.animation       = 'fadeOut 1s';
+
+  setTimeout(() => {
+    qna.style.webkitAnimation = 'fadeIn 1s';
+    qna.style.animation       = 'fadeIn 1s';
+  }, 450);
+
+  setTimeout(() => {
+    main.style.display = 'none';
+    qna.style.display  = 'block';
+  }, 450);
+
+  window.location.hash = '#q/0';
+  goNext(0);
+}
+
+// 외부에서도 begin() 호출 가능하게 노출
 window.begin = begin;
 
 // DOMContentLoaded 초기 바인딩
@@ -117,4 +203,4 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', begin);
     startBtn.dataset.bound = '1';
   }
-}); // ←←← 마지막은 꼭 }); 로 끝나야 함
+}); 
