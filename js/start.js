@@ -118,6 +118,3 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.dataset.bound = '1';
   }
 }); // ←←← 마지막은 꼭 }); 로 끝나야 함
-
-
-// 3. 파일 맨 마지막에 있던 불필요한 } 들을 모두 제거했습니다.
