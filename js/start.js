@@ -283,7 +283,16 @@ function bindStartButton() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
   bindStartButton();
   wireResultClicks();
 });
+fetch('js/start.js?v=' + Date.now(), {cache:'no-store'})
+  .then(r=>r.text())
+  .then(t => {
+    console.log('---LAST 300 CHARS---\n' + t.slice(-300));
+    let s=[], ln=1;
+    for (const ch of t){ if(ch==='\n') ln++; if('{[('.includes(ch)) s.push({ch,ln}); if('}])'.includes(ch)) s.pop(); }
+    console.log('미닫힘 남은 개수:', s.length, s);
+  });
+
