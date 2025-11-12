@@ -196,11 +196,94 @@ function begin() {
 // 외부에서도 begin() 호출 가능하게 노출
 window.begin = begin;
 
-// DOMContentLoaded 초기 바인딩
-document.addEventListener('DOMContentLoaded', () => {
+// ========== 공통: 이동(네비) 없이 클릭만 기록하는 헬퍼 ==========
+function markEvent(name, stayMs = 1000) {
+  try {
+    const back = location.href;
+    const ts = Date.now();
+    const clean = location.pathname.replace(/[^\w\/-]/g, '');
+    history.pushState({ maze: 'event' }, '', `${clean}?m=${encodeURIComponent(name)}-${ts}`);
+    setTimeout(() => history.replaceState({}, '', back), stayMs);
+  } catch (_) {}
+}
+
+// ========== 결과 화면에서 링크/버튼 네비게이션 차단 & 로깅 ==========
+function wireResultClicks() {
+  // 결과 설명 안의 링크/버튼
+  const resultDesc = document.querySelector('.resultDesc');
+  if (resultDesc) {
+    const links = resultDesc.querySelectorAll('a,button');
+    const send = (el) => {
+      const tag = (el.textContent || el.getAttribute('aria-label') || el.getAttribute('href') || '').trim();
+      if (window.Maze && typeof Maze.customEvent === 'function') {
+        Maze.customEvent('storycard_click', { tag });
+      } else {
+        console.log('✅ story/desc click:', tag);
+      }
+      markEvent(tag || 'story_item');
+    };
+    links.forEach((el) => {
+      // 실제 이동 막기
+      el.removeAttribute && el.removeAttribute('target');
+      el.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopImmediatePropagation();
+        send(el);
+      }, { capture: true });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault(); e.stopImmediatePropagation();
+          send(el);
+        }
+      }, { capture: true });
+    });
+  }
+
+  // 태그 리스트(버튼들) 전역 캡처
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('#result .tag-list button, #result .story-card a, #result .story-card button');
+    if (!btn) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    const tag = (btn.getAttribute('data-qa') || btn.textContent || '').trim();
+    if (window.Maze && typeof Maze.customEvent === 'function') {
+      Maze.customEvent('tag_click', { tag });
+    } else {
+      console.log('✅ tag click:', tag);
+    }
+    markEvent(tag || 'tag_item');
+  }, true);
+}
+
+// ========== 공유 버튼 핸들러 (페이지 이동 없이 기록만) ==========
+window.__onShareClick = (ev) => {
+  if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+  if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+
+  const title = document.querySelector('.resultname')?.textContent?.trim() || '';
+  try {
+    sessionStorage.setItem('shareClicked', '1');
+  } catch (_) {}
+
+  if (window.Maze && typeof Maze.customEvent === 'function') {
+    try { Maze.customEvent('share_click', { tag: title }); } catch (_) {}
+  } else {
+    console.log('✅ 공유 클릭(로컬 로그):', title);
+  }
+
+  // 이동 없이 히스토리만 찍고 복구
+  markEvent('share_click');
+  return false; // inline onclick 에서도 이동 차단
+};
+
+// ========== 시작 버튼 바인딩 & 해시 복구 ==========
+function bindStartButton() {
   const startBtn = document.getElementById('startButton');
   if (startBtn && !startBtn.dataset.bound) {
     startBtn.addEventListener('click', begin);
     startBtn.dataset.bound = '1';
   }
-}); 
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bindStartButton();
+  wireResultClicks();
+});
