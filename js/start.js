@@ -98,6 +98,8 @@ if (resultDesc) {
       }
     }, { capture: true });
   });
+ }
+
 }
 
 // 결과 화면으로 전환
