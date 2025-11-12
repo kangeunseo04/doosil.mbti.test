@@ -202,8 +202,6 @@ window.begin = begin;
 (function(){
   function markEvent(name){ try{ const back=location.href; history.pushState({},'', location.pathname + '?evt='+encodeURIComponent(name)); setTimeout(()=>history.replaceState({},'',back),600); }catch(e){} }
   window.__onShareClick = function(e){ e&&e.preventDefault&&e.preventDefault(); markEvent('share_click'); return false; };
-  function begin(){ markEvent('begin_click'); document.querySelector('#main') && (document.querySelector('#main').style.display='none'); document.querySelector('#qna') && (document.querySelector('#qna').style.display='block'); }
-  const btn = document.getElementById('startButton'); if(btn){ btn.addEventListener('click', begin); btn.dataset.bound='1'; }
   document.addEventListener('click', function(e){
     const a = e.target.closest('#result a, #result button, .resultDesc a, .resultDesc button');
     if(a){ e.preventDefault(); e.stopImmediatePropagation(); markEvent('result_click'); }
