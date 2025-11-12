@@ -253,3 +253,54 @@ function wireResultClicks() {
     markEvent(tag || 'tag_item');
   }, true);
 }
+// ========== 시작 버튼 바인딩 & 해시 복구 ==========
+function bindStartButton() {
+  const startBtn = document.getElementById('startButton');
+  // '응급 코드'가 남긴 꼬리표(dataset.bound)가 없으면,
+  // 진짜 begin 함수를 연결합니다.
+  if (startBtn && !startBtn.dataset.bound) {
+    startBtn.addEventListener('click', begin);
+    startBtn.dataset.bound = '1';
+  }
+}
+
+// ========== 공유 버튼 핸들러 (페이지 이동 없이 기록만) ==========
+// (이것도 지워졌길래 같이 넣습니다)
+window.__onShareClick = (ev) => {
+  if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+  if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+
+  const title = document.querySelector('.resultname')?.textContent?.trim() || '';
+  try {
+    sessionStorage.setItem('shareClicked', '1');
+  } catch (_) {}
+
+  if (window.Maze && typeof Maze.customEvent === 'function') {
+    try { Maze.customEvent('share_click', { tag: title }); } catch (_) {}
+  } else {
+    console.log('✅ 공유 클릭(로컬 로그):', title);
+  }
+
+  // 이동 없이 히스토리만 찍고 복구
+  // (markEvent 함수가 없어서 이 부분은 주석 처리합니다.
+  //  만약 markEvent가 필요하면 '응급 코드' 섹션에서 가져와야 합니다.)
+  // markEvent('share_click'); 
+  return false; // inline onclick 에서도 이동 차단
+};
+
+
+// ========== 페이지 로드 완료 시 실행 ==========
+document.addEventListener('DOMContentLoaded', () => {
+  bindStartButton(); // <--- '시작하기' 버튼 연결
+  wireResultClicks(); // <--- 결과 페이지 버튼들 연결
+});
+
+// ========== 디버깅용 fetch (이것도 지워졌길래 넣습니다) ==========
+fetch('js/start.js?v=' + Date.now(), {cache:'no-store'})
+  .then(r=>r.text())
+  .then(t => {
+    console.log('---LAST 300 CHARS---\n' + t.slice(-300));
+    let s=[], ln=1;
+    for (const ch of t){ if(ch==='\n') ln++; if('{[('.includes(ch)) s.push({ch,ln}); if('}])'.includes(ch)) s.pop(); }
+    console.log('미닫힘 남은 개수:', s.length, s);
+  });
