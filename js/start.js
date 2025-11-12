@@ -196,16 +196,17 @@ function begin() {
 // 외부에서도 begin() 호출 가능하게 노출
 window.begin = begin;
 
-// ========== 공통: 이동(네비) 없이 클릭만 기록하는 헬퍼 ==========
-function markEvent(name, stayMs = 1000) {
-  try {
-    const back = location.href;
-    const ts = Date.now();
-    const clean = location.pathname.replace(/[^\w\/-]/g, '');
-    history.pushState({ maze: 'event' }, '', `${clean}?m=${encodeURIComponent(name)}-${ts}`);
-    setTimeout(() => history.replaceState({}, '', back), stayMs);
-  } catch (_) {}
-}
+// start.js (emergency safe)
+(function(){
+  function markEvent(name){ try{ const back=location.href; history.pushState({},'', location.pathname + '?evt='+encodeURIComponent(name)); setTimeout(()=>history.replaceState({},'',back),600); }catch(e){} }
+  window.__onShareClick = function(e){ e&&e.preventDefault&&e.preventDefault(); markEvent('share_click'); return false; };
+  function begin(){ markEvent('begin_click'); document.querySelector('#main') && (document.querySelector('#main').style.display='none'); document.querySelector('#qna') && (document.querySelector('#qna').style.display='block'); }
+  const btn = document.getElementById('startButton'); if(btn){ btn.addEventListener('click', begin); btn.dataset.bound='1'; }
+  document.addEventListener('click', function(e){
+    const a = e.target.closest('#result a, #result button, .resultDesc a, .resultDesc button');
+    if(a){ e.preventDefault(); e.stopImmediatePropagation(); markEvent('result_click'); }
+  }, true);
+})();
 
 // ========== 결과 화면에서 링크/버튼 네비게이션 차단 & 로깅 ==========
 function wireResultClicks() {
