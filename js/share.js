@@ -254,6 +254,5 @@ function initializeShareButton() {
       text: '내 라이프스타일 MBTI 결과를 확인해보세요!',
       url: window.location.href // 현재 페이지 URL을 공유합니다.
     };
-});
   }
 }
