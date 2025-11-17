@@ -38,11 +38,13 @@ function currentMbitSafe() {
   const mbti = (detectMBTI() || '').toUpperCase();
   return /^[EI][NS][FT][JP]$/.test(mbti) ? mbti : 'XXXX';
 }
-// 결과 해시 가짜 경로 적용 (/result→/result-ENFP 등)
 function buildResultURL(mbti) {
   const _m = String(mbti || '').toUpperCase();
-  return `${BASE}result-${_m}#result`;
+  const BASE = window.__BASE || '/';     // 🔹 실제 BASE 사용
+  // /repo-name/result-INTJ/ 형태가 되도록 끝에 / 붙이기
+  return `${BASE}result-${_m}/#result`;
 }
+
 function isMBTIFakePathApplied() {
   return /\/result-[A-Z]{4}\//i.test(location.pathname);
 }
