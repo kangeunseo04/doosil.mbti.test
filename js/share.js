@@ -184,20 +184,18 @@ async function setShare(e) {
     console.log('✅ 공유 버튼 클릭(로컬 로깅):', title);
   }
 
-  // 버튼 피드백
+  // 👉 버튼 문구 · 상태 영구 변경
   const btn = document.getElementById('shareButton');
   if (btn) {
-    const prev = btn.textContent;
-    btn.textContent = '복사 완료!';
+    btn.textContent = '공유 완료';     // 원하는 문구로 고정
+    btn.disabled = true;              // 다시 못 누르게 하고 싶으면 유지, 아니면 이 줄 지워도 됨
+    btn.classList.add('shared');      // 필요하면 CSS에서 .shared 스타일 줄 수 있음
     btn.setAttribute('aria-pressed', 'true');
-    setTimeout(() => {
-      btn.textContent = prev;
-      btn.removeAttribute('aria-pressed');
-    }, 1200);
   }
 
   return false; // 네비게이션 완전 차단
 }
+
 
 // 테스트용 노출(콘솔에서 확인 가능)
 window.isMaze = isMaze;
@@ -220,23 +218,7 @@ window.__onShareClick = (e) => {
 ================================================================
 */
 
-// DOM(HTML 문서)이 완전히 로드되었을 때 아래 함수들을 실행합니다.
-document.addEventListener('DOMContentLoaded', (event) => {
-    
-    // 문제 1 해결: 불필요한 테스트 UI 숨기기
-    hideTestUIElements();
-    
-    // 문제 2 해결: 공유 버튼 기능 및 피드백 추가
-    initializeShareButton();
 
-});
-
-
-/*
-================================================================
-  문제 1: 테스트 UI 요소 숨기기 함수 (Image 1)
-================================================================
-*/
 function hideTestUIElements() {
   
   // 1. 진행률 표시줄 숨기기
@@ -272,16 +254,6 @@ function initializeShareButton() {
       text: '내 라이프스타일 MBTI 결과를 확인해보세요!',
       url: window.location.href // 현재 페이지 URL을 공유합니다.
     };
-    document.getElementById("shareButton").addEventListener("click", function() {
-    // 공유 로직 실행 (이미 있는 함수라면 유지)
-    
-    // 버튼 문구 변경
-    this.innerText = "공유 완료!";
-    
-    // 비활성화 하고 싶으면:
-    this.disabled = true;
 });
-
-
   }
 }
