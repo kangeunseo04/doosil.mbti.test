@@ -109,23 +109,28 @@ function goResult() {
   qna.style.animation       = 'fadeOut 1s';
 
   setTimeout(() => {
-    // 👉 질문/진행바 들어있는 qna 전체 숨기기
+    // 질문 영역, 메인 영역 숨기기
     qna.style.display   = 'none';
-
-    // 메인도 숨기고
     main.style.display  = 'none';
 
-    // 결과 섹션 보이게 + 페이드 인
-    result.style.display       = 'block';
+    // 결과 섹션만 보이게 + 페이드 인
+    result.style.display        = 'block';
     result.style.webkitAnimation = 'fadeIn 1s';
     result.style.animation       = 'fadeIn 1s';
   }, 450);
 
- window.location.hash = '#result';
-if (window.applyMbtIFakePath) {
-  window.applyMbtIFakePath();   // 🔹 Maze일 때만 가짜 path로 바꿔줌
+  // 해시를 결과로 이동
+  window.location.hash = '#result';
+
+  // 🔹 Maze에서만 가짜 결과 URL 적용 (/result-INTJ/ 등)
+  if (window.applyMbtIFakePath) {
+    window.applyMbtIFakePath();
+  }
+
+  // 결과 내용 세팅
+  setResult();
 }
-setResult();
+
 // 보기(답변) 버튼 생성
 function addAnswer(answerText, qIdx, idx) {
   const wrap = document.querySelector('.answerBox');
@@ -292,20 +297,22 @@ window.__onShareClick = (ev) => {
   // markEvent('share_click'); 
   return false; // inline onclick 에서도 이동 차단
 };
-
-
 // ========== 페이지 로드 완료 시 실행 ==========
 document.addEventListener('DOMContentLoaded', () => {
-  bindStartButton(); // <--- '시작하기' 버튼 연결
-  wireResultClicks(); // <--- 결과 페이지 버튼들 연결
+  bindStartButton();   // '시작하기' 버튼 연결
+  wireResultClicks();  // 결과 페이지 버튼들 연결
 });
 
-// ========== 디버깅용 fetch (이것도 지워졌길래 넣습니다) ==========
-fetch('js/start.js?v=' + Date.now(), {cache:'no-store'})
-  .then(r=>r.text())
-  .then(t => {
+// ========== 디버깅용 fetch (선택 사항) ==========
+fetch('js/start.js?v=' + Date.now(), { cache: 'no-store' })
+  .then((r) => r.text())
+  .then((t) => {
     console.log('---LAST 300 CHARS---\n' + t.slice(-300));
-    let s=[], ln=1;
-    for (const ch of t){ if(ch==='\n') ln++; if('{[('.includes(ch)) s.push({ch,ln}); if('}])'.includes(ch)) s.pop(); }
+    let s = [], ln = 1;
+    for (const ch of t) {
+      if (ch === '\n') ln++;
+      if ('{[('.includes(ch)) s.push({ ch, ln });
+      if ('}])'.includes(ch)) s.pop();
+    }
     console.log('미닫힘 남은 개수:', s.length, s);
   });
