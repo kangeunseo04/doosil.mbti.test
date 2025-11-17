@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/" />
+  <meta name="description" content="과연 나와 어울리는 라이프스타일은 무엇일까요?">
+  <title>라이프스타일 유형 테스트 - 결과</title>
+
+  <!-- CSS 링크는 index.html과 동일하게 유지 -->
+  <link rel="stylesheet" href="css/test_style.css">
+  <link rel="stylesheet" href="css/qna.css">
+  <link rel="stylesheet" href="css/animation.css">
+  <link rel="stylesheet" href="css/result.css">
+
+  <!-- 아이콘/OG 태그, Kakao SDK, Maze 스니펫 등은 index에서 그대로 복붙해도 됨 -->
+</head>
+<body>
+  <div class="container">
+    <header class="col-lg-6 col-md-6 col-sm-6 col-12 mx-auto mt-5" style="text-align: center;">
+      <span onclick="location.href='/'" style="cursor: pointer;">
+        라이프스타일 취향찾기 테스트
+      </span>
+    </header>
+
+    <!-- ✅ 결과 페이지만 존재 -->
+    <section id="result" class="mx-auto my-5 py-5 px-3">
+      <h1>당신의 라이프 스타일은</h1>
+
+      <!-- MBTI 이름 -->
+      <div class="resultname"></div>
+
+      <!-- 결과 이미지 -->
+      <div id="resultImg" class="col-lg-6 col-md-6 col-sm-6 col-12 mx-auto mt-5"></div>
+
+      <!-- 설명 텍스트/스토리카드 -->
+      <div class="resultDesc mt-3 mb-3"></div>
+
+      <!-- 공유 버튼 (index랑 동일하게 유지) -->
+      <button
+        id="shareButton"
+        type="button"
+        class="btn-cta"
+        onclick="return window.__onShareClick && window.__onShareClick(event)">
+        친구한테 공유하기
+      </button>
+    </section>
+
+    <div class="col-lg-6 col-md-6 col-sm-6 col-12 mx-auto mt-5 pb-5" style="text-align: center;">
+      <span>
+        © 2023 두꺼비선생 Co. Ltd. All Rights Reserved
+      </span>
+    </div>
+  </div>
+
+  <!-- 🔽 스크립트 로드 순서 중요 -->
+
+  <!-- (1) data.js : infoList / qnaList 등 데이터 -->
+  <script src="js/data.js" defer></script>
+
+  <!-- (2) start.js : setResult, wireResultClicks 등 재사용 -->
+  <script src="js/start.js?v=4" defer></script>
+
+  <!-- (3) share.js : 공유 버튼 + Maze 트래킹 재사용 -->
+  <script src="js/share.js?v=2" defer></script> :contentReference[oaicite:5]{index=5}
+
+  <!-- (4) result-page.js : URL의 idx값을 읽어서 setResult를 재사용 -->
+  <script src="js/result-page.js" defer></script>
+</body>
+</html>
