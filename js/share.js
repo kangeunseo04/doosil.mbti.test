@@ -272,31 +272,16 @@ function initializeShareButton() {
       text: '내 라이프스타일 MBTI 결과를 확인해보세요!',
       url: window.location.href // 현재 페이지 URL을 공유합니다.
     };
+    document.getElementById("shareButton").addEventListener("click", function() {
+    // 공유 로직 실행 (이미 있는 함수라면 유지)
+    
+    // 버튼 문구 변경
+    this.innerText = "공유 완료!";
+    
+    // 비활성화 하고 싶으면:
+    this.disabled = true;
+});
 
-    // 버튼에 'click' 이벤트 리스너를 추가합니다.
-    shareButton.addEventListener('click', async () => {
-      try {
-        // 1순위: 모바일용 네이티브 공유 API (navigator.share)
-        if (navigator.share) {
-          await navigator.share(shareData);
-          // 공유 성공 시
-          shareButton.textContent = '공유 완료!';
-          shareButton.disabled = true; // 버튼 비활성화
-        } else {
-          // 2순위: 데스크톱용 클립보드 복사 (Fallback)
-          await navigator.clipboard.writeText(shareData.url);
-          shareButton.textContent = '링크 복사 완료!';
-          shareButton.disabled = true; // 버튼 비활성화
-        }
-      } catch (err) {
-        console.error('공유 또는 복사 실패:', err);
-        shareButton.textContent = '공유가 취소되었습니다.';
-        // 2초 뒤 원래 텍스트로 복구
-        setTimeout(() => {
-          shareButton.textContent = '친구한테 공유하기';
-          shareButton.disabled = false; // 버튼 다시 활성화
-        }, 2000);
-      }
-    });
+
   }
 }
