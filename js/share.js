@@ -90,15 +90,16 @@ function bindShareButton() {
   shareBtn.addEventListener('click', setShare, { passive: false, capture: true });
   shareBtn.dataset.bound = '1';
 }
-
+// ===== 결과 화면에서 태그/스토리카드 클릭 트래킹 =====
 document.addEventListener('click', (e) => {
-  // 결과 화면이 아닐 때는 무시 (선택 사항)
+  // 결과 섹션이 안 보이면 무시
   const resultSection = document.getElementById('result');
   if (!resultSection || resultSection.style.display === 'none') return;
 
-  // 공유 버튼은 기존 로직 유지
+  // 공유 버튼은 여기서 처리하지 않음
   if (e.target.closest('#shareButton')) return;
 
+  // 태그/스토리카드 안에 있는 버튼/링크만 잡기
   const el = e.target.closest(
     '#result .tag-list button,' +
     '#result .tag-list [role="button"],' +
@@ -108,19 +109,26 @@ document.addEventListener('click', (e) => {
   );
   if (!el) return;
 
-  // 🔹 Maze 히트맵을 위해 버블링은 막지 말기
-  // 링크로 어디 이동하는 걸 막고 싶으면, a 태그일 때만 막아도 됨
+  // Maze 히트맵을 위해 버블링은 막지 않고,
+  // 실제 페이지 이동만 막고 싶으면 a 태그일 때만 막기
   if (el.tagName === 'A') {
     e.preventDefault();
   }
-  // ❌ e.stopPropagation();
-  // ❌ e.stopImmediatePropagation();
+
+  // data-qa 없으면 형제 순서 기준으로 자동 부여
+  if (!el.getAttribute('data-qa')) {
+    const siblings = el.parentElement ? [...el.parentElement.children] : [];
+    const idx = String(
+      siblings.filter((s) => s.hasAttribute && s.hasAttribute('data-qa')).length + 1
+    ).padStart(2, '0');
+    el.setAttribute('data-qa', `tag-${idx}`);
+  }
 
   const name =
     el.getAttribute('data-qa') ||
     (el.closest('.story-card') ? 'story' : 'tag');
 
-  // 커스텀 이벤트로 MBTI + 태그 이름은 계속 Maze로 보내기
+  // Maze 커스텀 이벤트로 (어떤 태그/스토리, 어떤 MBTI인지) 보내기
   if (window.Maze && typeof Maze.customEvent === 'function') {
     Maze.customEvent('storycard_click', {
       tag: `${name}-${currentMbitSafe()}`,
@@ -129,6 +137,7 @@ document.addEventListener('click', (e) => {
     console.log('✅ storycard_click:', name, currentMbitSafe());
   }
 });
+
 
   // data-qa 없으면 자동 부여 (선택)
   if (!el.getAttribute('data-qa')) {
