@@ -213,3 +213,90 @@ window.__onShareClick = (e) => {
   } catch (_) {}
   return setShare(e);
 };
+ /* 
+================================================================
+  이 코드를 여러분의 메인 JavaScript 파일 최상단 또는
+  결과 페이지가 로드될 때 실행되는 함수 내에 추가하세요.
+================================================================
+*/
+
+// DOM(HTML 문서)이 완전히 로드되었을 때 아래 함수들을 실행합니다.
+document.addEventListener('DOMContentLoaded', (event) => {
+    
+    // 문제 1 해결: 불필요한 테스트 UI 숨기기
+    hideTestUIElements();
+    
+    // 문제 2 해결: 공유 버튼 기능 및 피드백 추가
+    initializeShareButton();
+
+});
+
+
+/*
+================================================================
+  문제 1: 테스트 UI 요소 숨기기 함수 (Image 1)
+================================================================
+*/
+function hideTestUIElements() {
+  
+  // 1. 진행률 표시줄 숨기기
+  // (주의: 'progress-bar-container'는 실제 HTML의 ID로 변경해야 합니다)
+  const progressBar = document.getElementById('progress-bar-container');
+  if (progressBar) {
+    progressBar.style.display = 'none'; // 요소를 화면에서 완전히 숨깁니다.
+  }
+
+  // 2. 마지막 질문 UI 숨기기
+  // (주의: 'question-indicator'는 실제 HTML의 ID로 변경해야 합니다)
+  const questionIndicator = document.getElementById('question-indicator');
+  if (questionIndicator) {
+    questionIndicator.style.display = 'none'; // 요소를 화면에서 완전히 숨깁니다.
+  }
+}
+
+
+/*
+================================================================
+  문제 2: 공유하기 버튼 기능 활성화 함수 (Image 2)
+================================================================
+*/
+function initializeShareButton() {
+  
+  // (주의: 'share-button-id'는 실제 HTML의 ID로 변경해야 합니다)
+  const shareButton = document.getElementById('share-button-id');
+
+  if (shareButton) {
+    
+    const shareData = {
+      title: '내 라이프스타일 취향 테스트',
+      text: '내 라이프스타일 MBTI 결과를 확인해보세요!',
+      url: window.location.href // 현재 페이지 URL을 공유합니다.
+    };
+
+    // 버튼에 'click' 이벤트 리스너를 추가합니다.
+    shareButton.addEventListener('click', async () => {
+      try {
+        // 1순위: 모바일용 네이티브 공유 API (navigator.share)
+        if (navigator.share) {
+          await navigator.share(shareData);
+          // 공유 성공 시
+          shareButton.textContent = '공유 완료!';
+          shareButton.disabled = true; // 버튼 비활성화
+        } else {
+          // 2순위: 데스크톱용 클립보드 복사 (Fallback)
+          await navigator.clipboard.writeText(shareData.url);
+          shareButton.textContent = '링크 복사 완료!';
+          shareButton.disabled = true; // 버튼 비활성화
+        }
+      } catch (err) {
+        console.error('공유 또는 복사 실패:', err);
+        shareButton.textContent = '공유가 취소되었습니다.';
+        // 2초 뒤 원래 텍스트로 복구
+        setTimeout(() => {
+          shareButton.textContent = '친구한테 공유하기';
+          shareButton.disabled = false; // 버튼 다시 활성화
+        }, 2000);
+      }
+    });
+  }
+}
