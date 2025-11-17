@@ -136,7 +136,7 @@ document.addEventListener('click', (e) => {
     const idx = String(siblings.filter(s => s.hasAttribute?.('data-qa')).length + 1).padStart(2, '0');
     el.setAttribute('data-qa', `tag-${idx}`);
   }
-}, { capture: true, passive: false });
+ { capture: true, passive: false });
 
 // 해시/히스토리/가시성 변경에 따른 바인딩 & 배지 동기화
 window.addEventListener('hashchange', () => { bindShareButton(); syncSharedMarkerWithURL(); });
