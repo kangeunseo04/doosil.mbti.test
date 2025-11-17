@@ -104,23 +104,27 @@ if (resultDesc) {
 
 // 결과 화면으로 전환
 function goResult() {
+  // Q&A 섹션 페이드 아웃
   qna.style.webkitAnimation = 'fadeOut 1s';
-  qna.style.animation      = 'fadeOut 1s';
+  qna.style.animation       = 'fadeOut 1s';
 
   setTimeout(() => {
+    // 👉 질문/진행바 들어있는 qna 전체 숨기기
+    qna.style.display   = 'none';
+
+    // 메인도 숨기고
+    main.style.display  = 'none';
+
+    // 결과 섹션 보이게 + 페이드 인
+    result.style.display       = 'block';
     result.style.webkitAnimation = 'fadeIn 1s';
     result.style.animation       = 'fadeIn 1s';
   }, 450);
 
-  setTimeout(() => {
-    main.style.display  = 'none';
-    result.style.display = 'block';
-  }, 450);
-
+  // 해시 이동 + 결과 데이터 렌더링
   window.location.hash = '#result';
   setResult();
 }
-
 // 보기(답변) 버튼 생성
 function addAnswer(answerText, qIdx, idx) {
   const wrap = document.querySelector('.answerBox');
