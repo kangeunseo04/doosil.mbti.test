@@ -151,7 +151,6 @@ function goResult() {
 
   // 결과 내용 세팅
   setResult();
-}
 
 // 보기(답변) 버튼 생성
 function addAnswer(answerText, qIdx, idx) {
