@@ -121,10 +121,11 @@ function goResult() {
     result.style.animation       = 'fadeIn 1s';
   }, 450);
 
-  // 해시 이동 + 결과 데이터 렌더링
-  window.location.hash = '#result';
-  setResult();
+ window.location.hash = '#result';
+if (window.applyMbtIFakePath) {
+  window.applyMbtIFakePath();   // 🔹 Maze일 때만 가짜 path로 바꿔줌
 }
+setResult();
 // 보기(답변) 버튼 생성
 function addAnswer(answerText, qIdx, idx) {
   const wrap = document.querySelector('.answerBox');
