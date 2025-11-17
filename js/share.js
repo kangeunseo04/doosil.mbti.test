@@ -47,23 +47,23 @@
     return `${BASE}result-${_m}/#result`;
   }
 
-  function applyMbtiFakePath() {
-    if (!isMaze()) return;
-    if (location.hash !== '#result') return;
+ function applyMbtiFakePath() {
+  if (location.hash !== '#result') return;
 
-    const mbti = detectMBTI();
-    if (!mbti) return;
+  const mbti = detectMBTI();
+  if (!mbti) return;
 
-    const target = buildResultURL(mbti);
-    const current = location.pathname + location.search + location.hash;
-    if (current === target) return;
+  const target  = buildResultURL(mbti);
+  const current = location.pathname + location.search + location.hash;
+  if (current === target) return;
 
-    try {
-      history.replaceState({}, '', target);
-    } catch (e) {
-      console.warn('applyMbtiFakePath 실패:', e);
-    }
+  try {
+    history.replaceState({}, '', target);
+  } catch (e) {
+    console.warn('applyMbtiFakePath 실패:', e);
   }
+}
+
 
   // start.js 에서 쓰던 오타 버전까지 모두 지원
   function applyMbtIFakePath() {
