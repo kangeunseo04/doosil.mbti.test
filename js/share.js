@@ -92,6 +92,11 @@ function bindShareButton() {
 }
 
 document.addEventListener('click', (e) => {
+  // 결과 화면이 아닐 때는 무시 (선택 사항)
+  const resultSection = document.getElementById('result');
+  if (!resultSection || resultSection.style.display === 'none') return;
+
+  // 공유 버튼은 기존 로직 유지
   if (e.target.closest('#shareButton')) return;
 
   const el = e.target.closest(
@@ -103,20 +108,27 @@ document.addEventListener('click', (e) => {
   );
   if (!el) return;
 
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
+  // 🔹 Maze 히트맵을 위해 버블링은 막지 말기
+  // 링크로 어디 이동하는 걸 막고 싶으면, a 태그일 때만 막아도 됨
+  if (el.tagName === 'A') {
+    e.preventDefault();
+  }
+  // ❌ e.stopPropagation();
+  // ❌ e.stopImmediatePropagation();
 
   const name =
     el.getAttribute('data-qa') ||
     (el.closest('.story-card') ? 'story' : 'tag');
 
-  // 커스텀 이벤트(옵션)
+  // 커스텀 이벤트로 MBTI + 태그 이름은 계속 Maze로 보내기
   if (window.Maze && typeof Maze.customEvent === 'function') {
-    Maze.customEvent('storycard_click', { tag: `${name}-${currentMbitSafe()}` });
+    Maze.customEvent('storycard_click', {
+      tag: `${name}-${currentMbitSafe()}`,
+    });
   } else {
     console.log('✅ storycard_click:', name, currentMbitSafe());
   }
+});
 
   // data-qa 없으면 자동 부여 (선택)
   if (!el.getAttribute('data-qa')) {
