@@ -248,6 +248,32 @@ function wireResultClicks() {
       }, { capture: true });
     });
   }
+  // ========== Maze 리플레이 시 결과 화면 복구 ==========
+function restoreResultForMazeIfNeeded() {
+  try {
+    // Maze 환경이 아니면 아무것도 안 함
+    if (!window.isMaze || !window.isMaze()) return;
+  } catch (_) {
+    return;
+  }
+
+  const params = new URLSearchParams(location.search);
+  const evt = params.get('evt') || '';
+
+  // URL이 '?evt=result_click' 이거나, 해시가 '#result' 인 경우
+  if (location.hash === '#result' || evt === 'result_click') {
+    // 메인/질문 숨기고
+    if (main)  main.style.display  = 'none';
+    if (qna)   qna.style.display   = 'none';
+    // 결과 섹션만 보이게
+    if (result) {
+      result.style.display = 'block';
+      // infoList 로딩 상태를 보고 재시도하는 로직이 setResult 안에 이미 있음
+      setResult();
+    }
+  }
+}
+
 
   // 태그 리스트(버튼들) 전역 캡처
   document.addEventListener('click', (e) => {
@@ -299,10 +325,10 @@ window.__onShareClick = (ev) => {
 };
 // ========== 페이지 로드 완료 시 실행 ==========
 document.addEventListener('DOMContentLoaded', () => {
-  bindStartButton();   // '시작하기' 버튼 연결
-  wireResultClicks();  // 결과 페이지 버튼들 연결
+  bindStartButton();           // '시작하기' 버튼 연결
+  wireResultClicks();          // 결과 페이지 버튼들 클릭 로깅
+  restoreResultForMazeIfNeeded(); // 🔹 Maze에서 결과 URL로 열렸을 때 바로 결과 화면 보여주기
 });
-
 // ========== 디버깅용 fetch (선택 사항) ==========
 fetch('js/start.js?v=' + Date.now(), { cache: 'no-store' })
   .then((r) => r.text())
