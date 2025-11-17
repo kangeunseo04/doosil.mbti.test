@@ -355,12 +355,27 @@ window.__onShareClick = (ev) => {
 };
 // ========== Maze 리플레이 시 결과 화면 복구 ==========
 function restoreResultForMazeIfNeeded() {
-  try {
-    // Maze 환경이 아니면 아무것도 안 함
-    if (!window.isMaze || !window.isMaze()) return;
-  } catch (_) {
-    return;
+  // Maze 환경이면 페이지 분리된 것처럼 속이기
+try {
+  if (window.Maze) {
+    history.pushState({}, '', location.pathname + '?step=result');
   }
+} catch (_) {}
+function goResult() {
+  qna.style.display = "none";
+  result.style.display = "block";
+
+  // Maze에게 “이건 새로운 페이지야!”라고 알려주기
+  try {
+    if (window.Maze) {
+      history.pushState({}, '', location.pathname + '?step=result');
+    }
+  } catch (_) {}
+
+  // 너 원래 있던 결과 렌더 코드들…
+  printResult();
+}
+
 
   const params = new URLSearchParams(location.search);
   const evt = params.get('evt') || '';
