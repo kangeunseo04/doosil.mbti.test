@@ -80,7 +80,6 @@ function syncSharedMarkerWithURL() {
   const onShared = /\/shared\/\d+/.test(location.pathname);
   ensureSharedMarker(onShared);
 }
-
 // 공유 버튼 및 결과영역 클릭/키보드 트래킹
 let _shareObserver = null;
 
@@ -90,53 +89,59 @@ function bindShareButton() {
   shareBtn.addEventListener('click', setShare, { passive: false, capture: true });
   shareBtn.dataset.bound = '1';
 }
-// ===== 결과 화면에서 태그/스토리카드 클릭 트래킹 =====
-document.addEventListener('click', (e) => {
-  // 결과 섹션이 안 보이면 무시
-  const resultSection = document.getElementById('result');
-  if (!resultSection || resultSection.style.display === 'none') return;
 
-  // 공유 버튼은 여기서 처리하지 않음
-  if (e.target.closest('#shareButton')) return;
+// 결과 화면에서 태그/스토리카드 클릭 트래킹
+document.addEventListener(
+  'click',
+  (e) => {
+    // 결과 섹션이 안 보이면 무시
+    const resultSection = document.getElementById('result');
+    if (!resultSection || resultSection.style.display === 'none') return;
 
-  // 태그/스토리카드 안에 있는 버튼/링크만 잡기
-  const el = e.target.closest(
-    '#result .tag-list button,' +
-    '#result .tag-list [role="button"],' +
-    '#result .story-card button,' +
-    '#result .story-card a[href],' +
-    '#result .story-card [role="button"]'
-  );
-  if (!el) return;
+    // 공유 버튼은 여기서 처리 안 함
+    if (e.target.closest('#shareButton')) return;
 
-  // Maze 히트맵을 위해 버블링은 막지 않고,
-  // 실제 페이지 이동만 막고 싶으면 a 태그일 때만 막기
-  if (el.tagName === 'A') {
-    e.preventDefault();
-  }
+    // 태그/스토리카드 안 버튼/링크만 잡기
+    const el = e.target.closest(
+      '#result .tag-list button,' +
+      '#result .tag-list [role="button"],' +
+      '#result .story-card button,' +
+      '#result .story-card a[href],' +
+      '#result .story-card [role="button"]'
+    );
+    if (!el) return;
 
-  // data-qa 없으면 형제 순서 기준으로 자동 부여
-  if (!el.getAttribute('data-qa')) {
-    const siblings = el.parentElement ? [...el.parentElement.children] : [];
-    const idx = String(
-      siblings.filter((s) => s.hasAttribute && s.hasAttribute('data-qa')).length + 1
-    ).padStart(2, '0');
-    el.setAttribute('data-qa', `tag-${idx}`);
-  }
+    // Maze 히트맵을 위해 버블링은 막지 않고,
+    // 실제 페이지 이동만 막고 싶으면 a 태그일 때만 막기
+    if (el.tagName === 'A') {
+      e.preventDefault();
+    }
 
-  const name =
-    el.getAttribute('data-qa') ||
-    (el.closest('.story-card') ? 'story' : 'tag');
+    // data-qa 없으면 형제 순서 기준으로 자동 부여
+    if (!el.getAttribute('data-qa')) {
+      const siblings = el.parentElement ? Array.from(el.parentElement.children) : [];
+      const count = siblings.filter((s) =>
+        s.getAttribute && s.getAttribute('data-qa')
+      ).length + 1;
+      const idx = String(count).padStart(2, '0');
+      el.setAttribute('data-qa', 'tag-' + idx);
+    }
 
-  // Maze 커스텀 이벤트로 (어떤 태그/스토리, 어떤 MBTI인지) 보내기
-  if (window.Maze && typeof Maze.customEvent === 'function') {
-    Maze.customEvent('storycard_click', {
-      tag: `${name}-${currentMbitSafe()}`,
-    });
-  } else {
-    console.log('✅ storycard_click:', name, currentMbitSafe());
-  }
-});
+    const name =
+      el.getAttribute('data-qa') ||
+      (el.closest('.story-card') ? 'story' : 'tag');
+
+    // Maze 커스텀 이벤트로 어떤 태그/스토리를 눌렀는지 보내기
+    if (window.Maze && typeof Maze.customEvent === 'function') {
+      Maze.customEvent('storycard_click', {
+        tag: `${name}-${currentMbitSafe()}`,
+      });
+    } else {
+      console.log('✅ storycard_click:', name, currentMbitSafe());
+    }
+  },
+  { capture: true, passive: false }
+);
 
 
   // data-qa 없으면 자동 부여 (선택)
