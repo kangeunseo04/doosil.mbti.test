@@ -248,10 +248,10 @@ function wireResultClicks() {
       }, { capture: true });
     });
   }
-  // ========== Maze 리플레이 시 결과 화면 복구 ==========
+// ===== Maze 리플레이/특수 URL일 때 결과 화면부터 보여주기 =====
 function restoreResultForMazeIfNeeded() {
   try {
-    // Maze 환경이 아니면 아무것도 안 함
+    // Maze 환경이 아니면 아무 것도 안 함
     if (!window.isMaze || !window.isMaze()) return;
   } catch (_) {
     return;
@@ -260,19 +260,28 @@ function restoreResultForMazeIfNeeded() {
   const params = new URLSearchParams(location.search);
   const evt = params.get('evt') || '';
 
-  // URL이 '?evt=result_click' 이거나, 해시가 '#result' 인 경우
-  if (location.hash === '#result' || evt === 'result_click') {
-    // 메인/질문 숨기고
+  // URL이 ?evt=result_click 이거나 해시가 #result 면 "결과 모드"로 처리
+  if (evt === 'result_click' || location.hash === '#result') {
     if (main)  main.style.display  = 'none';
     if (qna)   qna.style.display   = 'none';
-    // 결과 섹션만 보이게
     if (result) {
       result.style.display = 'block';
-      // infoList 로딩 상태를 보고 재시도하는 로직이 setResult 안에 이미 있음
-      setResult();
+
+      // 결과 데이터 세팅 (현재 select 가 0이면 첫 타입이 나와도 괜찮음)
+      try {
+        setResult();
+      } catch (e) {
+        console.error('setResult 실패:', e);
+      }
+
+      // Maze에서만 가짜 path (/result-INTJ/) 적용
+      if (window.applyMbtIFakePath) {
+        window.applyMbtIFakePath();
+      }
     }
   }
 }
+
 
 
   // 태그 리스트(버튼들) 전역 캡처
