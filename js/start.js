@@ -323,6 +323,40 @@ window.__onShareClick = (ev) => {
   // markEvent('share_click'); 
   return false; // inline onclick 에서도 이동 차단
 };
+// ========== Maze 리플레이 시 결과 화면 복구 ==========
+function restoreResultForMazeIfNeeded() {
+  try {
+    // Maze 환경이 아니면 아무것도 안 함
+    if (!window.isMaze || !window.isMaze()) return;
+  } catch (_) {
+    return;
+  }
+
+  const params = new URLSearchParams(location.search);
+  const evt = params.get('evt') || '';
+
+  // Maze가 기록한 URL 예: ?evt=result_click#result&maze=1
+  if (location.hash === '#result' || evt === 'result_click') {
+    if (main)  main.style.display  = 'none';
+    if (qna)   qna.style.display   = 'none';
+    if (result) {
+      result.style.display = 'block';
+
+      // MBTI 결과 다시 그리기
+      try {
+        setResult();
+      } catch (e) {
+        console.error('setResult() 실패:', e);
+      }
+
+      // Maze용 가짜 결과 URL 적용 (/result-INTJ/ 로 바꾸기)
+      if (window.applyMbtIFakePath) {
+        window.applyMbtIFakePath();
+      }
+    }
+  }
+}
+
 // ========== 페이지 로드 완료 시 실행 ==========
 document.addEventListener('DOMContentLoaded', () => {
   bindStartButton();           // '시작하기' 버튼 연결
