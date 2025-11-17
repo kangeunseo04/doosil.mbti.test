@@ -102,22 +102,44 @@ if (resultDesc) {
 
 }
 
-// 결과 화면으로 전환
+// 결과 화면으로 전환 → 이제는 별도 페이지로 이동
 function goResult() {
-  // Q&A 섹션 페이드 아웃
-  qna.style.webkitAnimation = 'fadeOut 1s';
-  qna.style.animation       = 'fadeOut 1s';
+  // 1) 현재 선택값으로 결과 index 계산
+  let point = calResult(); // 0 ~ infoList.length-1
 
+  // 2) infoList 에서 MBTI 이름(예: INTJ) 추출
+  const list = window.infoList || window.infolist || [];
+  let mbti = '';
+  if (Array.isArray(list) && list[point]) {
+    // data.js 구조에 따라 필드명 맞춰서 사용
+    // 지금 setResult에서 list[point].name 을 쓰고 있으니 name 을 MBTI로 본다.
+    mbti = (list[point].name || '').toUpperCase();
+  }
+
+  // 3) 기본 경로 (GitHub Pages / 커스텀 도메인 둘 다 커버)
+  const base = window.__BASE || '/';
+
+  // 4) 쿼리스트링 만들기: ?idx=3&mbti=INTJ
+  const params = new URLSearchParams();
+  params.set('idx', String(point));
+  if (mbti) params.set('mbti', mbti);
+
+  // 5) 간단한 페이드아웃 애니메이션 (옵션)
+  if (qna) {
+    qna.style.webkitAnimation = 'fadeOut 0.6s';
+    qna.style.animation = 'fadeOut 0.6s';
+  }
+  if (main) {
+    main.style.webkitAnimation = 'fadeOut 0.6s';
+    main.style.animation = 'fadeOut 0.6s';
+  }
+
+  // 6) 애니메이션 끝난 뒤 결과 페이지로 이동
   setTimeout(() => {
-    // 질문 영역, 메인 영역 숨기기
-    qna.style.display   = 'none';
-    main.style.display  = 'none';
-
-    // 결과 섹션만 보이게 + 페이드 인
-    result.style.display        = 'block';
-    result.style.webkitAnimation = 'fadeIn 1s';
-    result.style.animation       = 'fadeIn 1s';
+    window.location.href = `${base}result.html?${params.toString()}`;
   }, 450);
+}
+
 
   // 해시를 결과로 이동
   window.location.hash = '#result';
